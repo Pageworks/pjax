@@ -22,11 +22,9 @@
         "pjax.js",
         "pjax.js.map"
     ],
-    "lint-staged": {
-        "linters": {
-            "/**/*.ts": [
-                "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose"
-            ]
+    "husky": {
+        "hooks": {
+          "pre-commit": "npm run precommit"
         }
     },
     "devDependencies": {
@@ -40,7 +38,7 @@
     "scripts": {
         "tsc": "tsc",
         "lint": "cross-env NODE_ENV=development tslint scripts/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
-        "precommit": "lint-staged",
+        "precommit": "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose",
         "compile": "tsc"
     }
 }
