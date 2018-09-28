@@ -1,0 +1,46 @@
+{
+    "name": "fuel-pjax",
+    "version": "0.0.1",
+    "description": "Easily enable fast AJAX navigation on any website using pushState + XHR",
+    "keywords": [
+        "pjax",
+        "pushstate",
+        "ajax",
+        "navigation",
+        "transition",
+        "animation"
+    ],
+    "repository": "https://github.com/Pageworks/fuel-pjax.git",
+    "author": "Kyle Andrews",
+    "contributors": [
+        "Kyle Andrews (http://devkyle.com)"
+    ],
+    "license": "MIT",
+    "main": "pjax.js",
+    "files": [
+        "scripts",
+        "pjax.js",
+        "pjax.js.map"
+    ],
+    "lint-staged": {
+        "linters": {
+            "/**/*.ts": [
+                "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose"
+            ]
+        }
+    },
+    "devDependencies": {
+        "cross-env": "^5.2.0",
+        "husky": "^0.14.3",
+        "tslint": "^5.11.0",
+        "tslint-config-airbnb": "^5.9.2",
+        "tslint-config-prettier": "^1.14.0",
+        "typescript": "^3.0.1"
+    },
+    "scripts": {
+        "tsc": "tsc",
+        "lint": "cross-env NODE_ENV=development tslint scripts/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
+        "precommit": "lint-staged",
+        "compile": "tsc"
+    }
+}

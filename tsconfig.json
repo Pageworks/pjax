@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "outDir": "./",
+        "sourceMap": true,
+        "noImplicitAny": true,
+        "removeComments": true,
+        "module": "commonjs",
+        "target": "es5",
+        "lib": [
+              "es5",
+              "es2015",
+              "dom",
+              "scripthost"
+          ],
+    },
+    "files": [
+        "./scripts/pjax.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+  }
