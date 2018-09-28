@@ -1,4 +1,4 @@
-# Papertrail Fuel: Pjax
+# Pjax
 Pjax enables fast and easy AJAX navigation on any website using `pushState` and `XHR`. No more full page reloads, no more multipul HTTP request. Written entirely in TypeScript, transpiled into vanilla JavaScript.
 
 ## Installation
