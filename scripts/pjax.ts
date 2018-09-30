@@ -30,6 +30,9 @@ export default class Pjax{
         this.init();
     }
 
+    /**
+     * Declare all initial event listeners
+     */
     init(){
         window.addEventListener('popstate', e => this.handlePopstate(e));
     }
@@ -46,10 +49,10 @@ export default class Pjax{
                 title: e.state.title,
                 history: false,
                 scrollPos: e.state.scrollPos,
-                backward: (e.state.uid < this.lastUUID) ? true : false
+                backward: (e.state.uuid < this.lastUUID) ? true : false
             };
 
-            this.lastUUID = e.state.uid;
+            this.lastUUID = e.state.uuid;
 
             this.loadUrl(e.state.url, options);
         }
@@ -80,6 +83,11 @@ export default class Pjax{
 
     }
 
+    /**
+     * If we have cached content we need to check if there is an active element and if the document contains our selectors and active element
+     * If it does blur the HTMLElement
+     * Then tell Pjax to switch selectors
+     */
     loadCachedContent(){
         if(document.activeElement && contains(document, this.options.selectors, document.activeElement)){
             try{
@@ -90,11 +98,22 @@ export default class Pjax{
         this.switchSelectors(this.options.selectors, this.cache, document, this.options);
     }
 
+    /**
+     * Abort the requested request by nullifying the onreadystatechange response before
+     * calling the XMLHttpRequest abort method
+     * @param request XMLHttpRequest
+     */
     abortRequest(request: XMLHttpRequest){
         request.onreadystatechange = ()=>{};
         request.abort();
     }
 
+    /**
+     * Create an HTML Document
+     * Check if the responseText is an HTML Document by checking with regex
+     * If the responseText matches our format return the new document otherwise return null
+     * @param responseText string
+     */
     parseContent(responseText: string){
         let tempEl = document.implementation.createHTMLDocument('pjax');
 
@@ -102,24 +121,20 @@ export default class Pjax{
         const htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
         let matches = responseText.match(htmlRegex);
         
-        if(matches && matches.length){
-            matches = matches[0].match(htmlRegex);
-            if(matches.length){
-                matches.shift();
-                matches.forEach((htmlAttribute)=>{
-                    let attr = htmlAttribute.trim().split('=');
-                    if(attr.length === 1){
-                        tempEl.documentElement.setAttribute(attr[0], "true");
-                    }else{
-                        tempEl.documentElement.setAttribute(attr[0], attr[1].slice(1,-1));
-                    }
-                });
-            }
-        }
+        if(matches && matches.length) return tempEl;
 
-        return tempEl;
+        return null;
     }
 
+    /**
+     * Attempts to cache the prefetched request
+     * First we parse the content and return a new HTML Document
+     * If parseContent returns null trigger and error and return
+     * Otherwise set the innerHTML of the document to the responseText
+     * Then cache the temp HTML Document
+     * @param responseText string
+     * @param options object
+     */
     cacheContent(responseText: string, options: object){
         let tempEl = this.parseContent(responseText);
 
