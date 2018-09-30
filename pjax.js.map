@@ -1,1 +1,1 @@
-{"version":3,"file":"pjax.js","sourceRoot":"","sources":["scripts/pjax.ts"],"names":[],"mappings":"AAAA,OAAO,CAAC,GAAG,CAAC,OAAO,CAAC,CAAC"}
+{"version":3,"file":"pjax.js","sourceRoot":"","sources":["scripts/pjax.ts"],"names":[],"mappings":";;AAEA;IAGI;QACI,IAAI,CAAC,KAAK,GAAG;YACT,kBAAkB,EAAE,CAAC;YACrB,IAAI,EAAE,IAAI;YACV,OAAO,EAAE,IAAI;SAChB,CAAA;IACL,CAAC;IACL,WAAC;AAAD,CAAC,AAVD,IAUC"}

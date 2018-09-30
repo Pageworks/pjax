@@ -1,14 +1,5 @@
-declare class Pjax{
-    options: Pjax.IOptions;
+declare namespace pjax{
 
-    constructor(options?: Partial<Pjax.IOptions>);
-
-    static switches: {
-        [key in DefaultSwitches]: Pjax.Switch
-    }
-}
-
-declare namespace Pjax{
     export interface IOptions{
         elements?: string,
         selectors?: string[],
@@ -25,6 +16,12 @@ declare namespace Pjax{
             requestParams?: IRequestParams[];
             formData?: FormData;
         }
+    }
+
+    export interface StateObject{
+        numPendingSwitches: number
+        href: string
+        options: object
     }
 
     export type Switch = (oldEl: Element, newEl: Element, options?: IOptions, switchesOptions?: StringKeyedObject) => void;
@@ -48,4 +45,4 @@ declare enum DefaultSwitches{
     replaceNode = 'replaceNode'
 }
 
-export {Pjax as default};
+export {pjax as default};

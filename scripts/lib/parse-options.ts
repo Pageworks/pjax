@@ -1,8 +1,8 @@
-import Pjax from '../globals';
+import pjax from '../globals';
 
-let parsedOptions: Pjax.IOptions;
+let parsedOptions: pjax.IOptions;
 
-export default function parseOptions(options?: Pjax.IOptions){
+export default (options?: pjax.IOptions)=>{
     parsedOptions                         = options || {};
     parsedOptions.elements                = options.elements || 'a[href]';
     parsedOptions.selectors               = options.selectors || ['title', '.js-pjax'];
