@@ -36,7 +36,6 @@
         "typescript": "^3.0.1"
     },
     "scripts": {
-        "tsc": "tsc",
         "lint": "cross-env NODE_ENV=development tslint scripts/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
         "precommit": "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose",
         "compile": "tsc"
