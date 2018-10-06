@@ -3,23 +3,25 @@ import parseOptions from './lib/parse-options';
 import uuid from './lib/uuid';
 import trigger from './lib/events/trigger';
 import contains from './lib/util/contains';
+import linkEvent from './lib/events/link-events';
+import checkElement from './lib/util/check-element';
 
 // TypeScript Declaration Imports
 import pjax from './globals';
 
 export default class Pjax{
-    state: pjax.StateObject
-    cache: Document
-    options: pjax.IOptions
-    lastUUID: string
-    request: XMLHttpRequest
+    state:      pjax.StateObject
+    cache:      Document
+    options:    pjax.IOptions
+    lastUUID:   string
+    request:    Promise<object>
+    links:      NodeList
 
     constructor(options?: pjax.IOptions){
         this.state = {
-            numPendingSwitches: 0,
             href: null,
             options: null
-        }
+        };
         this.cache = null;
         this.options = parseOptions(options);
         this.lastUUID = uuid();
@@ -35,6 +37,30 @@ export default class Pjax{
      */
     init(){
         window.addEventListener('popstate', e => this.handlePopstate(e));
+        this.parseDOM(document.body); // Attach listeners to initial link elements
+    }
+
+    handleReload(){
+        window.location.reload();
+    }
+
+    setLinkListeners(el:HTMLAnchorElement){
+        linkEvent(el);
+    }
+
+    getElements(el:Element){
+        return el.querySelectorAll(this.options.elements);
+    }
+
+    parseDOM(el:Element){
+        const elements = this.getElements(el);
+        elements.forEach((el)=>{
+            checkElement(<HTMLAnchorElement>el);
+        });
+    }
+
+    handleRefresh(el:Element){
+        this.parseDOM(el);
     }
 
     /**
@@ -69,11 +95,15 @@ export default class Pjax{
     loadUrl(href: string, options: object){
         if(this.options.debug) console.log('Loading url: ${href} with ', options);
 
-        this.abortRequest(this.request);
-
         if(this.cache === null){
             trigger(document, ['pjax:send']);
-            this.request = this.doRequest(href, options, this.handleResponse);
+            this.request = this.doRequest(href, options);
+            this.request.then((e: Event)=>{
+                
+            })
+            .catch((e: ErrorEvent)=>{
+                if(this.options.debug) console.log('XHR Request Error: ', e);
+            });
         }else{
             this.loadCachedContent();
         }
@@ -96,16 +126,6 @@ export default class Pjax{
         }
 
         this.switchSelectors(this.options.selectors, this.cache, document, this.options);
-    }
-
-    /**
-     * Abort the requested request by nullifying the onreadystatechange response before
-     * calling the XMLHttpRequest abort method
-     * @param request XMLHttpRequest
-     */
-    abortRequest(request: XMLHttpRequest){
-        request.onreadystatechange = ()=>{};
-        request.abort();
     }
 
     /**
@@ -159,34 +179,14 @@ export default class Pjax{
         this.cacheContent(responseText, options);
     }
 
-    doRequest(href: string, options: object, callback: Function){
-        const requestOptions    = this.options.requestOptions || {};
-        const reqeustMethod     = (requestOptions.requestMethod || 'GET').toUpperCase();
-        const requestParams     = requestOptions.requestParams || null;
-        const timeout           = this.options.timeout || 0;
-        const request           = new XMLHttpRequest();
-        let requestPayload      = null;
+    doRequest(href: string, options: object){
+        const requestOptions        = this.options.requestOptions || {};
+        const reqeustMethod         = (requestOptions.requestMethod || 'GET').toUpperCase();
+        const requestParams         = requestOptions.requestParams || null;
+        const timeout               = this.options.timeout || 0;
+        const request               = new XMLHttpRequest();
+        let requestPayload:string   = null;
         let queryString;
-
-        request.onreadystatechange = ()=>{
-            if(request.readyState === 4){
-                if(request.status === 200){
-                    callback(request.responseText, request, href, options);
-                }
-                else if(request.status !== 0){
-                    callback(null, request, href, options);
-                }
-            }
-        }
-
-        request.onerror = (e)=>{
-            console.log(e);
-            callback(null, request, href, options);
-        }
-
-        request.ontimeout = ()=>{
-            callback(null, request, href, options);
-        }
 
         if(requestParams && requestParams.length){
             queryString = (requestParams.map((param)=>{ return param.name + '=' + param.value })).join('&'); // Build query string
@@ -205,14 +205,15 @@ export default class Pjax{
 
         if(this.options.cacheBust) href += (queryString.length) ? ('&t=' + Date.now()) : ('t=' + Date.now());
 
-        request.open(reqeustMethod, href, true);
-        request.timeout = timeout;
-        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        request.setRequestHeader('X-PJAX', 'true');
-        request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
-
-        request.send(requestPayload);
-
-        return request;
+        return new Promise((resolve, reject)=>{
+            request.open(reqeustMethod, href, true);
+            request.timeout = timeout;
+            request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            request.setRequestHeader('X-PJAX', 'true');
+            request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
+            request.onload = resolve;
+            request.onerror = reject;
+            request.send(requestPayload);
+        });
     }
 }

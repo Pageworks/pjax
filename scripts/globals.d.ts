@@ -19,7 +19,6 @@ declare namespace pjax{
     }
 
     export interface StateObject{
-        numPendingSwitches: number
         href: string
         options: object
     }
