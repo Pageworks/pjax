@@ -6,12 +6,12 @@
  * If not set link event listeners
  * @param el Element
  */
-export default (el:Element)=>{
+export default (el:Element, pjax:any)=>{
     switch(el.tagName.toLocaleLowerCase()){
         case 'a':
-            if(!el.hasAttribute(this.options.attrState)) this.setLinkListeners(el);
+            if(!el.hasAttribute(pjax.options.attrState)) pjax.setLinkListeners(el);
             break;
         default:
-            throw 'Pjax can only be applied on <a> elements'
+            throw 'Pjax can only be applied on <a> elements';
     }
 }

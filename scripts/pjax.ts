@@ -6,19 +6,19 @@ import contains from './lib/util/contains';
 import linkEvent from './lib/events/link-events';
 import checkElement from './lib/util/check-element';
 
-// TypeScript Declaration Imports
-import pjax from './globals';
-declare var module:any
+// TypeScript Declarations
+import globals from './globals';
+declare const module:any
 
 class Pjax{
-    state:      pjax.StateObject
+    state:      globals.StateObject
     cache:      Document
-    options:    pjax.IOptions
+    options:    globals.IOptions
     lastUUID:   string
     request:    XMLHttpRequest
     links:      NodeList
 
-    constructor(options?: pjax.IOptions){
+    constructor(options?:globals.IOptions){
         this.state = {
             href: null,
             options: null
@@ -50,7 +50,7 @@ class Pjax{
      * @param el HTMLAnchorElement
      */
     setLinkListeners(el:HTMLAnchorElement){
-        linkEvent(el);
+        linkEvent(el, this);
     }
 
     /**
@@ -73,7 +73,7 @@ class Pjax{
     parseDOM(el:Element){
         const elements = this.getElements(el);
         elements.forEach((el)=>{
-            checkElement(el);
+            checkElement(el, this);
         });
     }
 
@@ -109,18 +109,18 @@ class Pjax{
     /**
      * Abort any current request
      * If we have content cached load the content
-     * If we don't have content cached trigger the pjax:send event before
+     * If we don't have content cached trigger the globals:send event before
      * starting our new XML HTTP request
      * @param href string
      * @param options object
      */
-    loadUrl(href: string, eOptions:pjax.EventOptions){
+    loadUrl(href: string, eOptions:globals.EventOptions){
         if(this.options.debug) console.log('Loading url: ${href} with ', eOptions);
 
         this.abortRequest();
 
         if(this.cache === null){
-            trigger(document, ['pjax:send']);
+            trigger(document, ['globals:send']);
             
             this.doRequest(href, eOptions)
             .then((e:XMLHttpRequest)=>{
@@ -160,7 +160,7 @@ class Pjax{
      * @param responseText string
      */
     parseContent(responseText: string){
-        let tempEl = document.implementation.createHTMLDocument('pjax');
+        let tempEl = document.implementation.createHTMLDocument('globals');
 
         // let htmlRegex = /<html[^>]+>/gi;
         const htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
@@ -178,13 +178,13 @@ class Pjax{
      * Otherwise set the innerHTML of the document to the responseText
      * Then cache the temp HTML Document
      * @param responseText string
-     * @param eOptions pjax.EventOptions
+     * @param eOptions globals.EventOptions
      */
-    cacheContent(responseText:string, eOptions:pjax.EventOptions){
+    cacheContent(responseText:string, eOptions:globals.EventOptions){
         let tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
-            trigger(document, ['pjax:error']);
+            trigger(document, ['globals:error']);
             return;
         }
 
@@ -201,11 +201,11 @@ class Pjax{
      * If the state was a prefetch cache our response
      * @todo Error reporting/handling for 404, 301, 302, 500
      * @param e XMLHttpRequest
-     * @param eOptions pjax.EventOptions
+     * @param eOptions globals.EventOptions
      */
-    handleResponse(e:XMLHttpRequest, eOptions:pjax.EventOptions){
+    handleResponse(e:XMLHttpRequest, eOptions:globals.EventOptions){
         if(e.responseText === null){
-            trigger(document, ['pjax:error']);
+            trigger(document, ['globals:error']);
             return;
         }
 
@@ -219,7 +219,7 @@ class Pjax{
         }
     }
 
-    doRequest(href:string, options:pjax.EventOptions){
+    doRequest(href:string, options:globals.EventOptions){
         const requestOptions        = this.options.requestOptions || {};
         const reqeustMethod         = (requestOptions.requestMethod || 'GET').toUpperCase();
         const requestParams         = requestOptions.requestParams || null;
@@ -261,17 +261,17 @@ class Pjax{
     /**
      * Called by a HTMLAnchorElement's `mouseover` event listener
      * Start by aborting the active request
-     * Trigger the `pjax:prefetch` event
+     * Trigger the `globals:prefetch` event
      * Do the request and handle the response
      * @param href string
-     * @param eOptions pjax.EventOptions
+     * @param eOptions globals.EventOptions
      */
-    handlePrefetch(href:string, eOptions:pjax.EventOptions){
+    handlePrefetch(href:string, eOptions:globals.EventOptions){
         if(this.options.debug) console.log('Prefetching: ', href);
 
         this.abortRequest();
 
-        trigger(document, ['pjax:prefetch']);
+        trigger(document, ['globals:prefetch']);
 
         // Do the request
         this.doRequest(href, eOptions)

@@ -2,7 +2,7 @@
 import on from './on';
 
 // TypeScript Declaration Imports
-import pjax from '../../globals';
+import globals from '../../globals';
 
 /**
  * Check if the event has had it's default prevented OR
@@ -43,7 +43,7 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
  * First we check if default is prevented
  * Then we prepare our eventOptions object, this is used to store specific or
  * unique data for this event that we don't need/want attached to the overall
- * this.options for our pjax class
+ * pjax.options for our globals class
  * Then we check to see if there is any reason to abort the event hijack
  * Then we prevent default
  * Then we check if the event is a reload or is linked to the same page
@@ -52,16 +52,16 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
  * @param el HTMLAnchorElement
  * @param e Event
  */
-const handleClick = (el:HTMLAnchorElement, e:Event)=>{
+const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
 
-    let eventOptions:pjax.EventOptions = {
+    let eventOptions:globals.EventOptions = {
         triggerElement: el
     };
 
     let attrValue = checkForAbort(el, e);
     if(attrValue !== null){
-        el.setAttribute(this.options.attrState, attrValue);
+        el.setAttribute(pjax.options.attrState, attrValue);
         return;
     }
 
@@ -69,12 +69,12 @@ const handleClick = (el:HTMLAnchorElement, e:Event)=>{
 
     // Don't do 'nothing' if the user is trying to reload the page by clicking on the same link twice
     if(el.href === window.location.href.split('#')[0]){
-        el.setAttribute(this.options.attrState, 'reload');
+        el.setAttribute(pjax.options.attrState, 'reload');
         return;
     }
 
-    el.setAttribute(this.options.attrState, 'load');
-    this.handleLoad(el.href, eventOptions);
+    el.setAttribute(pjax.options.attrState, 'load');
+    pjax.handleLoad(el.href, eventOptions);
 }
 
 /**
@@ -89,7 +89,7 @@ const handleClick = (el:HTMLAnchorElement, e:Event)=>{
  * @param el HTMLAnchorElement
  * @param e Event
  */
-const handleHover = (el:HTMLAnchorElement, e:Event)=>{
+const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
 
     if(e.type === 'mouseout'){
@@ -97,26 +97,26 @@ const handleHover = (el:HTMLAnchorElement, e:Event)=>{
         return;
     }
 
-    let eventOptions:pjax.EventOptions = {
+    let eventOptions:globals.EventOptions = {
         triggerElement: el
     };
 
     let attrValue = checkForAbort(el, e);
     if(attrValue !== null){
-        el.setAttribute(this.options.attrState, attrValue);
+        el.setAttribute(pjax.options.attrState, attrValue);
         return;
     }
 
     // If the user is hovering over the link to their current page do nothing
     // There is no reason to prefetch the same page since the reload state has unique functionality
-    if(el.href !== window.location.href.split('#')[0]) el.setAttribute(this.options.attrState, 'prefetch');
+    if(el.href !== window.location.href.split('#')[0]) el.setAttribute(pjax.options.attrState, 'prefetch');
     else return;
 
-    this.handlePrefetch(el.href, eventOptions);
+    pjax.handlePrefetch(el.href, eventOptions);
 }
 
 /**
- * Start by setting our pjax state attribute to nothing
+ * Start by setting our globals state attribute to nothing
  * This will prevent us to setting the listeners to an element that we've already parsed
  * Then attach the `click` event
  * Then attach the `mouseover` event
@@ -126,20 +126,20 @@ const handleHover = (el:HTMLAnchorElement, e:Event)=>{
  * Key code is depricated but is needed for older browser support (IE<=10)
  * @param el HTMLAnchorElement
  */
-export default (el:HTMLAnchorElement)=>{
-    el.setAttribute(this.options.attrState, '');
+export default (el:HTMLAnchorElement, pjax:any)=>{
+    el.setAttribute(pjax.options.attrState, '');
 
     // Use clicked a link
-    on(el, 'click', (e:Event)=>{ handleClick(el, e); });
+    on(el, 'click', (e:Event)=>{ handleClick(el, e, pjax); });
 
     // User is hovering over a link
-    on(el, 'mouseover', (e:Event)=>{ handleHover(el, e); });
+    on(el, 'mouseover', (e:Event)=>{ handleHover(el, e, pjax); });
 
     // User unhovered the link
-    on(el, 'mouseout', (e:Event)=>{ handleHover(el, e); });
+    on(el, 'mouseout', (e:Event)=>{ handleHover(el, e, pjax); });
 
     // User released a key press
     on(el, 'keyup', (e:KeyboardEvent)=>{
-        if(e.key === 'enter' || e.keyCode === 13) handleClick(el, e);
+        if(e.key === 'enter' || e.keyCode === 13) handleClick(el, e, pjax);
     });
 }

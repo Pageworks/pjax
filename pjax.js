@@ -29,15 +29,16 @@ var Pjax = (function () {
         window.location.reload();
     };
     Pjax.prototype.setLinkListeners = function (el) {
-        link_events_1.default(el);
+        link_events_1.default(el, this);
     };
     Pjax.prototype.getElements = function (el) {
         return el.querySelectorAll(this.options.elements);
     };
     Pjax.prototype.parseDOM = function (el) {
+        var _this = this;
         var elements = this.getElements(el);
         elements.forEach(function (el) {
-            check_element_1.default(el);
+            check_element_1.default(el, _this);
         });
     };
     Pjax.prototype.handleRefresh = function (el) {
@@ -64,7 +65,7 @@ var Pjax = (function () {
             console.log('Loading url: ${href} with ', eOptions);
         this.abortRequest();
         if (this.cache === null) {
-            trigger_1.default(document, ['pjax:send']);
+            trigger_1.default(document, ['globals:send']);
             this.doRequest(href, eOptions)
                 .then(function (e) {
             })
@@ -91,7 +92,7 @@ var Pjax = (function () {
         this.switchSelectors(this.options.selectors, this.cache, document, this.options);
     };
     Pjax.prototype.parseContent = function (responseText) {
-        var tempEl = document.implementation.createHTMLDocument('pjax');
+        var tempEl = document.implementation.createHTMLDocument('globals');
         var htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
         var matches = responseText.match(htmlRegex);
         if (matches && matches.length)
@@ -101,7 +102,7 @@ var Pjax = (function () {
     Pjax.prototype.cacheContent = function (responseText, eOptions) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
-            trigger_1.default(document, ['pjax:error']);
+            trigger_1.default(document, ['globals:error']);
             return;
         }
         tempEl.documentElement.innerHTML = responseText;
@@ -109,7 +110,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.handleResponse = function (e, eOptions) {
         if (e.responseText === null) {
-            trigger_1.default(document, ['pjax:error']);
+            trigger_1.default(document, ['globals:error']);
             return;
         }
         this.state.href = e.responseURL;
@@ -161,7 +162,7 @@ var Pjax = (function () {
         if (this.options.debug)
             console.log('Prefetching: ', href);
         this.abortRequest();
-        trigger_1.default(document, ['pjax:prefetch']);
+        trigger_1.default(document, ['globals:prefetch']);
         this.doRequest(href, eOptions)
             .then(function (e) { _this.handleResponse(e, eOptions); })
             .catch(function (e) {
