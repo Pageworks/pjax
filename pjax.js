@@ -4,10 +4,11 @@ var parse_options_1 = require("./lib/parse-options");
 var uuid_1 = require("./lib/uuid");
 var trigger_1 = require("./lib/events/trigger");
 var contains_1 = require("./lib/util/contains");
+var link_events_1 = require("./lib/events/link-events");
+var check_element_1 = require("./lib/util/check-element");
 var Pjax = (function () {
     function Pjax(options) {
         this.state = {
-            numPendingSwitches: 0,
             href: null,
             options: null
         };
@@ -22,6 +23,25 @@ var Pjax = (function () {
     Pjax.prototype.init = function () {
         var _this = this;
         window.addEventListener('popstate', function (e) { return _this.handlePopstate(e); });
+        this.parseDOM(document.body);
+    };
+    Pjax.prototype.handleReload = function () {
+        window.location.reload();
+    };
+    Pjax.prototype.setLinkListeners = function (el) {
+        link_events_1.default(el);
+    };
+    Pjax.prototype.getElements = function (el) {
+        return el.querySelectorAll(this.options.elements);
+    };
+    Pjax.prototype.parseDOM = function (el) {
+        var elements = this.getElements(el);
+        elements.forEach(function (el) {
+            check_element_1.default(el);
+        });
+    };
+    Pjax.prototype.handleRefresh = function (el) {
+        this.parseDOM(el);
     };
     Pjax.prototype.handlePopstate = function (e) {
         if (e.state) {
@@ -33,16 +53,25 @@ var Pjax = (function () {
                 backward: (e.state.uuid < this.lastUUID) ? true : false
             };
             this.lastUUID = e.state.uuid;
-            this.loadUrl(e.state.url, options);
         }
     };
-    Pjax.prototype.loadUrl = function (href, options) {
+    Pjax.prototype.abortRequest = function () {
+        this.request.abort();
+    };
+    Pjax.prototype.loadUrl = function (href, eOptions) {
+        var _this = this;
         if (this.options.debug)
-            console.log('Loading url: ${href} with ', options);
-        this.abortRequest(this.request);
+            console.log('Loading url: ${href} with ', eOptions);
+        this.abortRequest();
         if (this.cache === null) {
             trigger_1.default(document, ['pjax:send']);
-            this.request = this.doRequest(href, options, this.handleResponse);
+            this.doRequest(href, eOptions)
+                .then(function (e) {
+            })
+                .catch(function (e) {
+                if (_this.options.debug)
+                    console.log('XHR Request Error: ', e);
+            });
         }
         else {
             this.loadCachedContent();
@@ -61,10 +90,6 @@ var Pjax = (function () {
         }
         this.switchSelectors(this.options.selectors, this.cache, document, this.options);
     };
-    Pjax.prototype.abortRequest = function (request) {
-        request.onreadystatechange = function () { };
-        request.abort();
-    };
     Pjax.prototype.parseContent = function (responseText) {
         var tempEl = document.implementation.createHTMLDocument('pjax');
         var htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
@@ -73,7 +98,7 @@ var Pjax = (function () {
             return tempEl;
         return null;
     };
-    Pjax.prototype.cacheContent = function (responseText, options) {
+    Pjax.prototype.cacheContent = function (responseText, eOptions) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
             trigger_1.default(document, ['pjax:error']);
@@ -82,16 +107,21 @@ var Pjax = (function () {
         tempEl.documentElement.innerHTML = responseText;
         this.cache = tempEl;
     };
-    Pjax.prototype.handleResponse = function (responseText, request, href, options) {
-        if (responseText === null) {
+    Pjax.prototype.handleResponse = function (e, eOptions) {
+        if (e.responseText === null) {
             trigger_1.default(document, ['pjax:error']);
             return;
         }
-        this.state.href = href;
-        this.state.options = options;
-        this.cacheContent(responseText, options);
+        this.state.href = e.responseURL;
+        this.state.options = eOptions;
+        switch (eOptions.triggerElement.getAttribute(this.options.attrState)) {
+            case 'prefetch':
+                this.cacheContent(e.responseText, eOptions);
+                break;
+        }
     };
-    Pjax.prototype.doRequest = function (href, options, callback) {
+    Pjax.prototype.doRequest = function (href, options) {
+        var _this = this;
         var requestOptions = this.options.requestOptions || {};
         var reqeustMethod = (requestOptions.requestMethod || 'GET').toUpperCase();
         var requestParams = requestOptions.requestParams || null;
@@ -99,23 +129,6 @@ var Pjax = (function () {
         var request = new XMLHttpRequest();
         var requestPayload = null;
         var queryString;
-        request.onreadystatechange = function () {
-            if (request.readyState === 4) {
-                if (request.status === 200) {
-                    callback(request.responseText, request, href, options);
-                }
-                else if (request.status !== 0) {
-                    callback(null, request, href, options);
-                }
-            }
-        };
-        request.onerror = function (e) {
-            console.log(e);
-            callback(null, request, href, options);
-        };
-        request.ontimeout = function () {
-            callback(null, request, href, options);
-        };
         if (requestParams && requestParams.length) {
             queryString = (requestParams.map(function (param) { return param.name + '=' + param.value; })).join('&');
             switch (reqeustMethod) {
@@ -131,15 +144,32 @@ var Pjax = (function () {
         }
         if (this.options.cacheBust)
             href += (queryString.length) ? ('&t=' + Date.now()) : ('t=' + Date.now());
-        request.open(reqeustMethod, href, true);
-        request.timeout = timeout;
-        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        request.setRequestHeader('X-PJAX', 'true');
-        request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
-        request.send(requestPayload);
-        return request;
+        return new Promise(function (resolve, reject) {
+            request.open(reqeustMethod, href, true);
+            request.timeout = timeout;
+            request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            request.setRequestHeader('X-PJAX', 'true');
+            request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(_this.options.selectors));
+            request.onload = resolve;
+            request.onerror = reject;
+            request.send(requestPayload);
+            _this.request = request;
+        });
+    };
+    Pjax.prototype.handlePrefetch = function (href, eOptions) {
+        var _this = this;
+        if (this.options.debug)
+            console.log('Prefetching: ', href);
+        this.abortRequest();
+        trigger_1.default(document, ['pjax:prefetch']);
+        this.doRequest(href, eOptions)
+            .then(function (e) { _this.handleResponse(e, eOptions); })
+            .catch(function (e) {
+            if (_this.options.debug)
+                console.log('XHR Request Error: ', e);
+        });
     };
     return Pjax;
 }());
-exports.default = Pjax;
+module.exports = Pjax;
 //# sourceMappingURL=pjax.js.map

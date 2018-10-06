@@ -8,13 +8,14 @@ import checkElement from './lib/util/check-element';
 
 // TypeScript Declaration Imports
 import pjax from './globals';
+declare var module:any
 
-export default class Pjax{
+class Pjax{
     state:      pjax.StateObject
     cache:      Document
     options:    pjax.IOptions
     lastUUID:   string
-    request:    Promise<object>
+    request:    XMLHttpRequest
     links:      NodeList
 
     constructor(options?: pjax.IOptions){
@@ -102,7 +103,7 @@ export default class Pjax{
     }
 
     abortRequest(){
-        this.request = null;
+        this.request.abort();
     }
 
     /**
@@ -120,8 +121,9 @@ export default class Pjax{
 
         if(this.cache === null){
             trigger(document, ['pjax:send']);
-            this.request = this.doRequest(href, eOptions);
-            this.request.then((e:XMLHttpRequest)=>{
+            
+            this.doRequest(href, eOptions)
+            .then((e:XMLHttpRequest)=>{
                 
             })
             .catch((e:ErrorEvent)=>{
@@ -252,6 +254,7 @@ export default class Pjax{
             request.onload = resolve;
             request.onerror = reject;
             request.send(requestPayload);
+            this.request = request;
         });
     }
 
@@ -271,10 +274,12 @@ export default class Pjax{
         trigger(document, ['pjax:prefetch']);
 
         // Do the request
-        this.request = this.doRequest(href, eOptions);
-        this.request.then((e:XMLHttpRequest)=>{ this.handleResponse(e, eOptions); })
+        this.doRequest(href, eOptions)
+        .then((e:XMLHttpRequest)=>{ this.handleResponse(e, eOptions); })
         .catch((e:ErrorEvent)=>{
             if(this.options.debug) console.log('XHR Request Error: ', e);
         });
     }
 }
+
+module.exports = Pjax;

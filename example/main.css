@@ -1,0 +1,12 @@
+main{
+    width: 100vw;
+    min-height: 100vh;
+    display: block
+}
+
+article{
+    width: 100%;
+    max-width: 1200px;
+    display: block;
+    margin: 0 auto;
+}

@@ -24,12 +24,15 @@
     ],
     "husky": {
         "hooks": {
-          "pre-commit": "npm run precommit"
+            "pre-commit": "npm run precommit"
         }
     },
     "devDependencies": {
+        "browserify": "^16.2.3",
         "cross-env": "^5.2.0",
         "husky": "^0.14.3",
+        "opn-cli": "^3.1.0",
+        "serve": "^10.0.2",
         "tslint": "^5.11.0",
         "tslint-config-airbnb": "^5.9.2",
         "tslint-config-prettier": "^1.14.0",
@@ -38,6 +41,9 @@
     "scripts": {
         "lint": "cross-env NODE_ENV=development tslint scripts/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
         "precommit": "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose",
-        "compile": "tsc"
+        "compile": "tsc",
+        "example": "opn http://localhost:3000/example/ && serve -p 3000",
+        "browserify": "browserify pjax.js --debug --standalone Pjax > ./example/index.js",
+        "test": "npm run compile && npm run browserify"
     }
 }
