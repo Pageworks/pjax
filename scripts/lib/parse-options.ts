@@ -13,6 +13,7 @@ export default (options?: pjax.IOptions)=>{
         parsedOptions.cacheBust = options.cacheBust || false;
         parsedOptions.debug     = options.debug || false;
         parsedOptions.timeout   = options.timeout || 0;
+        parsedOptions.attrState = options.attrState || 'data-pjax-state';
 
     return parsedOptions;
 }

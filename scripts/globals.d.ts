@@ -10,6 +10,7 @@ declare namespace pjax{
         scrollTo?: number,
         debug?: boolean,
         timeout?: number,
+        attrState?: string,
         requestOptions?:{
             requestUrl?: string;
             requestMethod?: string;
@@ -20,7 +21,7 @@ declare namespace pjax{
 
     export interface StateObject{
         href: string
-        options: object
+        options: EventOptions
     }
 
     export type Switch = (oldEl: Element, newEl: Element, options?: IOptions, switchesOptions?: StringKeyedObject) => void;
@@ -28,6 +29,10 @@ declare namespace pjax{
     export interface IRequestParams{
         name: string,
         value: string
+    }
+
+    export interface EventOptions{
+        triggerElement: Element
     }
 }
 

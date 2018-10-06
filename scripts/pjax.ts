@@ -44,18 +44,35 @@ export default class Pjax{
         window.location.reload();
     }
 
+    /**
+     * Take the parsed element and attach our link listeners to it
+     * @param el HTMLAnchorElement
+     */
     setLinkListeners(el:HTMLAnchorElement){
         linkEvent(el);
     }
 
+    /**
+     * Called by `this.parseDOM`
+     * Takes the provided element and queries for all our desired elements
+     * defined in this.options.elements (default as HTMLAnchorElement)
+     * @param el Element
+     * @returns NodeList
+     */
     getElements(el:Element){
         return el.querySelectorAll(this.options.elements);
     }
 
+    /**
+     * This method parses the DOM looking for our desired elements
+     * Once we have our elements as a NodeList we loop through the
+     * elements looking to see if the element is an HTMLAnchorElement
+     * @param el Element
+     */
     parseDOM(el:Element){
         const elements = this.getElements(el);
         elements.forEach((el)=>{
-            checkElement(<HTMLAnchorElement>el);
+            checkElement(el);
         });
     }
 
@@ -80,8 +97,12 @@ export default class Pjax{
 
             this.lastUUID = e.state.uuid;
 
-            this.loadUrl(e.state.url, options);
+            // this.loadUrl(e.state.url, options);
         }
+    }
+
+    abortRequest(){
+        this.request = null;
     }
 
     /**
@@ -92,16 +113,18 @@ export default class Pjax{
      * @param href string
      * @param options object
      */
-    loadUrl(href: string, options: object){
-        if(this.options.debug) console.log('Loading url: ${href} with ', options);
+    loadUrl(href: string, eOptions:pjax.EventOptions){
+        if(this.options.debug) console.log('Loading url: ${href} with ', eOptions);
+
+        this.abortRequest();
 
         if(this.cache === null){
             trigger(document, ['pjax:send']);
-            this.request = this.doRequest(href, options);
-            this.request.then((e: Event)=>{
+            this.request = this.doRequest(href, eOptions);
+            this.request.then((e:XMLHttpRequest)=>{
                 
             })
-            .catch((e: ErrorEvent)=>{
+            .catch((e:ErrorEvent)=>{
                 if(this.options.debug) console.log('XHR Request Error: ', e);
             });
         }else{
@@ -153,9 +176,9 @@ export default class Pjax{
      * Otherwise set the innerHTML of the document to the responseText
      * Then cache the temp HTML Document
      * @param responseText string
-     * @param options object
+     * @param eOptions pjax.EventOptions
      */
-    cacheContent(responseText: string, options: object){
+    cacheContent(responseText:string, eOptions:pjax.EventOptions){
         let tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
@@ -167,19 +190,34 @@ export default class Pjax{
         this.cache = tempEl;
     }
 
-    handleResponse(responseText: string, request: XMLHttpRequest, href: string, options: object){
-        if(responseText === null){
+    /**
+     * This method handles our different response types
+     * First we check if the response has HTML for us to handle
+     * If we have something to work with prepare our state object
+     * with the response's URL and our current eOptions
+     * Then get the state attribute from our trigger element
+     * If the state was a prefetch cache our response
+     * @todo Error reporting/handling for 404, 301, 302, 500
+     * @param e XMLHttpRequest
+     * @param eOptions pjax.EventOptions
+     */
+    handleResponse(e:XMLHttpRequest, eOptions:pjax.EventOptions){
+        if(e.responseText === null){
             trigger(document, ['pjax:error']);
             return;
         }
 
-        this.state.href = href;
-        this.state.options = options;
+        this.state.href = e.responseURL;
+        this.state.options = eOptions;
 
-        this.cacheContent(responseText, options);
+        switch(eOptions.triggerElement.getAttribute(this.options.attrState)){
+            case 'prefetch':
+                this.cacheContent(e.responseText, eOptions);
+                break;
+        }
     }
 
-    doRequest(href: string, options: object){
+    doRequest(href:string, options:pjax.EventOptions){
         const requestOptions        = this.options.requestOptions || {};
         const reqeustMethod         = (requestOptions.requestMethod || 'GET').toUpperCase();
         const requestParams         = requestOptions.requestParams || null;
@@ -214,6 +252,29 @@ export default class Pjax{
             request.onload = resolve;
             request.onerror = reject;
             request.send(requestPayload);
+        });
+    }
+
+    /**
+     * Called by a HTMLAnchorElement's `mouseover` event listener
+     * Start by aborting the active request
+     * Trigger the `pjax:prefetch` event
+     * Do the request and handle the response
+     * @param href string
+     * @param eOptions pjax.EventOptions
+     */
+    handlePrefetch(href:string, eOptions:pjax.EventOptions){
+        if(this.options.debug) console.log('Prefetching: ', href);
+
+        this.abortRequest();
+
+        trigger(document, ['pjax:prefetch']);
+
+        // Do the request
+        this.request = this.doRequest(href, eOptions);
+        this.request.then((e:XMLHttpRequest)=>{ this.handleResponse(e, eOptions); })
+        .catch((e:ErrorEvent)=>{
+            if(this.options.debug) console.log('XHR Request Error: ', e);
         });
     }
 }
