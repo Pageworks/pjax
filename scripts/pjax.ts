@@ -103,13 +103,17 @@ class Pjax{
     }
 
     abortRequest(){
-        this.request.abort();
+        if(this.request === null) return;
+        if(this.request.readyState !== 4){
+            this.request.abort();
+            this.request = null;
+        }
     }
 
     /**
      * Abort any current request
      * If we have content cached load the content
-     * If we don't have content cached trigger the globals:send event before
+     * If we don't have content cached trigger the pjax:send event before
      * starting our new XML HTTP request
      * @param href string
      * @param options object
@@ -120,7 +124,7 @@ class Pjax{
         this.abortRequest();
 
         if(this.cache === null){
-            trigger(document, ['globals:send']);
+            trigger(document, ['pjax:send']);
             
             this.doRequest(href, eOptions)
             .then((e:XMLHttpRequest)=>{
@@ -134,8 +138,45 @@ class Pjax{
         }
     }
 
-    switchSelectors(selectors: string[], fromEl: Document, toEl: Document, options: object){
+    handleSwitches(switchQueue:Array<globals.SwitchOptions>){
+        switchQueue.map((switchObj)=>{
+            switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
 
+            if(switchObj.newEl.className === '') switchObj.oldEl.removeAttribute('class');
+            else switchObj.oldEl.className = switchObj.newEl.className;
+        });
+    }
+
+    switchSelectors(selectors: string[], toEl: Document, fromEl: Document, options: object){
+        let switchQueue:Array<globals.SwitchOptions> = [];
+
+        selectors.forEach((selector)=>{
+            let newEls = toEl.querySelectorAll(selector);
+            let oldEls = fromEl.querySelectorAll(selector);
+
+            if(this.options.debug) console.log('Pjax Switch: ', selector, newEls, oldEls);
+
+            if(newEls.length !== oldEls.length){
+                if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
+            }
+
+            newEls.forEach((newEl, i)=>{
+                let oldEl = oldEls[i];
+
+                let elSwitch = {
+                    newEl: newEl,
+                    oldEl: oldEl
+                };
+
+                switchQueue.push(elSwitch);
+            });
+        });
+        
+        if(switchQueue.length === 0){
+            if(this.options.debug) console.log('Couldn\'t find anything to switch');
+            return;
+        }
+        else this.handleSwitches(switchQueue);
     }
 
     /**
@@ -184,12 +225,14 @@ class Pjax{
         let tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
-            trigger(document, ['globals:error']);
+            trigger(document, ['pjax:error']);
             return;
         }
 
         tempEl.documentElement.innerHTML = responseText;
         this.cache = tempEl;
+
+        if(this.options.debug) console.log('Cached Content: ', this.cache);
     }
 
     /**
@@ -203,18 +246,22 @@ class Pjax{
      * @param e XMLHttpRequest
      * @param eOptions globals.EventOptions
      */
-    handleResponse(e:XMLHttpRequest, eOptions:globals.EventOptions){
-        if(e.responseText === null){
-            trigger(document, ['globals:error']);
+    handleResponse(e:Event, eOptions:globals.EventOptions){
+        if(this.options.debug) console.log('XML Http Request Status: ', this.request.status);
+
+        const request = this.request;
+        
+        if(request.responseText === null){
+            trigger(document, ['pjax:error']);
             return;
         }
 
-        this.state.href = e.responseURL;
+        this.state.href = request.responseURL;
         this.state.options = eOptions;
 
         switch(eOptions.triggerElement.getAttribute(this.options.attrState)){
             case 'prefetch':
-                this.cacheContent(e.responseText, eOptions);
+                this.cacheContent(request.responseText, eOptions);
                 break;
         }
     }
@@ -261,7 +308,7 @@ class Pjax{
     /**
      * Called by a HTMLAnchorElement's `mouseover` event listener
      * Start by aborting the active request
-     * Trigger the `globals:prefetch` event
+     * Trigger the `pjax:prefetch` event
      * Do the request and handle the response
      * @param href string
      * @param eOptions globals.EventOptions
@@ -271,14 +318,40 @@ class Pjax{
 
         this.abortRequest();
 
-        trigger(document, ['globals:prefetch']);
+        trigger(document, ['pjax:prefetch']);
 
         // Do the request
         this.doRequest(href, eOptions)
-        .then((e:XMLHttpRequest)=>{ this.handleResponse(e, eOptions); })
+        .then((e:Event)=>{ this.handleResponse(e, eOptions); })
         .catch((e:ErrorEvent)=>{
             if(this.options.debug) console.log('XHR Request Error: ', e);
         });
+    }
+
+    handleLoad(href:string, eOptions:globals.EventOptions){
+        if(this.cache !== null){
+            if(this.options.debug) console.log('Loading Cached: ', href);
+            this.loadCachedContent();
+            return;
+        }
+        else if(this.request !== null){
+            if(this.options.debug) console.log('Loading Prefetch: ', href);
+            return;
+        }else{
+            if(this.options.debug) console.log('Loading: ', href);
+        }
+    }
+
+    /**
+     * Called when a user unhovers (`mouseout`) a link
+     * Abort the current request
+     * Trigger the cancel event
+     * Clear the cache
+     */
+    clearPrefetch(){
+        this.abortRequest();
+        trigger(document, ['pjax:cancel']);
+        this.cache = null;
     }
 }
 

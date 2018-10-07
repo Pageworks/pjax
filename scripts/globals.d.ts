@@ -34,6 +34,11 @@ declare namespace pjax{
     export interface EventOptions{
         triggerElement: Element
     }
+
+    export interface SwitchOptions{
+        oldEl: Element
+        newEl: Element
+    }
 }
 
 interface StringKeyedObject<T = any>{

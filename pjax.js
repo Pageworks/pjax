@@ -57,7 +57,12 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.abortRequest = function () {
-        this.request.abort();
+        if (this.request === null)
+            return;
+        if (this.request.readyState !== 4) {
+            this.request.abort();
+            this.request = null;
+        }
     };
     Pjax.prototype.loadUrl = function (href, eOptions) {
         var _this = this;
@@ -65,7 +70,7 @@ var Pjax = (function () {
             console.log('Loading url: ${href} with ', eOptions);
         this.abortRequest();
         if (this.cache === null) {
-            trigger_1.default(document, ['globals:send']);
+            trigger_1.default(document, ['pjax:send']);
             this.doRequest(href, eOptions)
                 .then(function (e) {
             })
@@ -78,7 +83,43 @@ var Pjax = (function () {
             this.loadCachedContent();
         }
     };
-    Pjax.prototype.switchSelectors = function (selectors, fromEl, toEl, options) {
+    Pjax.prototype.handleSwitches = function (switchQueue) {
+        switchQueue.map(function (switchObj) {
+            switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
+            if (switchObj.newEl.className === '')
+                switchObj.oldEl.removeAttribute('class');
+            else
+                switchObj.oldEl.className = switchObj.newEl.className;
+        });
+    };
+    Pjax.prototype.switchSelectors = function (selectors, toEl, fromEl, options) {
+        var _this = this;
+        var switchQueue = [];
+        selectors.forEach(function (selector) {
+            var newEls = toEl.querySelectorAll(selector);
+            var oldEls = fromEl.querySelectorAll(selector);
+            if (_this.options.debug)
+                console.log('Pjax Switch: ', selector, newEls, oldEls);
+            if (newEls.length !== oldEls.length) {
+                if (_this.options.debug)
+                    console.log('DOM doesn\'t look the same on the new page');
+            }
+            newEls.forEach(function (newEl, i) {
+                var oldEl = oldEls[i];
+                var elSwitch = {
+                    newEl: newEl,
+                    oldEl: oldEl
+                };
+                switchQueue.push(elSwitch);
+            });
+        });
+        if (switchQueue.length === 0) {
+            if (this.options.debug)
+                console.log('Couldn\'t find anything to switch');
+            return;
+        }
+        else
+            this.handleSwitches(switchQueue);
     };
     Pjax.prototype.loadCachedContent = function () {
         if (document.activeElement && contains_1.default(document, this.options.selectors, document.activeElement)) {
@@ -102,22 +143,27 @@ var Pjax = (function () {
     Pjax.prototype.cacheContent = function (responseText, eOptions) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
-            trigger_1.default(document, ['globals:error']);
+            trigger_1.default(document, ['pjax:error']);
             return;
         }
         tempEl.documentElement.innerHTML = responseText;
         this.cache = tempEl;
+        if (this.options.debug)
+            console.log('Cached Content: ', this.cache);
     };
     Pjax.prototype.handleResponse = function (e, eOptions) {
-        if (e.responseText === null) {
-            trigger_1.default(document, ['globals:error']);
+        if (this.options.debug)
+            console.log('XML Http Request Status: ', this.request.status);
+        var request = this.request;
+        if (request.responseText === null) {
+            trigger_1.default(document, ['pjax:error']);
             return;
         }
-        this.state.href = e.responseURL;
+        this.state.href = request.responseURL;
         this.state.options = eOptions;
         switch (eOptions.triggerElement.getAttribute(this.options.attrState)) {
             case 'prefetch':
-                this.cacheContent(e.responseText, eOptions);
+                this.cacheContent(request.responseText, eOptions);
                 break;
         }
     };
@@ -162,13 +208,35 @@ var Pjax = (function () {
         if (this.options.debug)
             console.log('Prefetching: ', href);
         this.abortRequest();
-        trigger_1.default(document, ['globals:prefetch']);
+        trigger_1.default(document, ['pjax:prefetch']);
         this.doRequest(href, eOptions)
             .then(function (e) { _this.handleResponse(e, eOptions); })
             .catch(function (e) {
             if (_this.options.debug)
                 console.log('XHR Request Error: ', e);
         });
+    };
+    Pjax.prototype.handleLoad = function (href, eOptions) {
+        if (this.cache !== null) {
+            if (this.options.debug)
+                console.log('Loading Cached: ', href);
+            this.loadCachedContent();
+            return;
+        }
+        else if (this.request !== null) {
+            if (this.options.debug)
+                console.log('Loading Prefetch: ', href);
+            return;
+        }
+        else {
+            if (this.options.debug)
+                console.log('Loading: ', href);
+        }
+    };
+    Pjax.prototype.clearPrefetch = function () {
+        this.abortRequest();
+        trigger_1.default(document, ['pjax:cancel']);
+        this.cache = null;
     };
     return Pjax;
 }());
