@@ -20,8 +20,10 @@ declare namespace pjax{
     }
 
     export interface StateObject{
-        href: string
-        options: EventOptions
+        url?: string
+        title?: string
+        history?: boolean
+        scrollPos?: number[]
     }
 
     export type Switch = (oldEl: Element, newEl: Element, options?: IOptions, switchesOptions?: StringKeyedObject) => void;

@@ -9,8 +9,10 @@ var check_element_1 = require("./lib/util/check-element");
 var Pjax = (function () {
     function Pjax(options) {
         this.state = {
-            href: null,
-            options: null
+            url: window.location.href,
+            title: document.title,
+            history: true,
+            scrollPos: [0, 0]
         };
         this.cache = null;
         this.options = parse_options_1.default(options);
@@ -46,14 +48,11 @@ var Pjax = (function () {
     };
     Pjax.prototype.handlePopstate = function (e) {
         if (e.state) {
-            var options = {
-                url: e.state.url,
-                title: e.state.title,
-                history: false,
-                scrollPos: e.state.scrollPos,
-                backward: (e.state.uuid < this.lastUUID) ? true : false
-            };
+            if (this.options.debug)
+                console.log('Hijacking Popstate Event');
+            e.preventDefault();
             this.lastUUID = e.state.uuid;
+            this.loadUrl(e.state.url, null);
         }
     };
     Pjax.prototype.abortRequest = function () {
@@ -65,34 +64,87 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.loadUrl = function (href, eOptions) {
-        var _this = this;
-        if (this.options.debug)
-            console.log('Loading url: ${href} with ', eOptions);
         this.abortRequest();
         if (this.cache === null) {
-            trigger_1.default(document, ['pjax:send']);
-            this.doRequest(href, eOptions)
-                .then(function (e) {
-            })
-                .catch(function (e) {
-                if (_this.options.debug)
-                    console.log('XHR Request Error: ', e);
-            });
+            this.handleLoad(href, eOptions);
         }
         else {
             this.loadCachedContent();
         }
     };
+    Pjax.prototype.handlePushState = function () {
+        if (this.state !== {}) {
+            if (this.state.history) {
+                this.lastUUID = uuid_1.default();
+                window.history.pushState({
+                    url: this.state.url,
+                    title: this.state.title,
+                    uuid: this.lastUUID,
+                    scrollPos: [0, 0]
+                }, this.state.title, this.state.url);
+            }
+            else {
+                this.lastUUID = uuid_1.default();
+                window.history.replaceState({
+                    url: this.state.url,
+                    title: this.state.title,
+                    uuid: this.lastUUID,
+                    scrollPos: [0, 0]
+                }, document.title);
+            }
+        }
+    };
+    Pjax.prototype.handleScrollPosition = function () {
+        if (this.state.history) {
+            var temp = document.createElement('a');
+            temp.href = this.state.url;
+            if (temp.hash) {
+                var name_1 = temp.hash.slice(1);
+                name_1 = decodeURIComponent(name_1);
+                var currTop = 0;
+                var target = document.getElementById(name_1) || document.getElementsByName(name_1)[0];
+                if (target) {
+                    if (target.offsetParent) {
+                        do {
+                            currTop += target.offsetTop;
+                            target = target.offsetParent;
+                        } while (target);
+                    }
+                }
+                window.scrollTo(0, currTop);
+            }
+            else
+                window.scrollTo(0, this.options.scrollTo);
+        }
+        else if (this.state.scrollPos) {
+            window.scrollTo(this.state.scrollPos[0], this.state.scrollPos[1]);
+        }
+    };
+    Pjax.prototype.finalize = function () {
+        if (this.options.debug)
+            console.log('Finishing Pjax');
+        this.state = {
+            url: this.request.responseURL,
+            title: document.title,
+            history: true,
+            scrollPos: [0, window.scrollY]
+        };
+        if (this.options.debug)
+            console.log('Setting History State: ', this.state);
+        this.handlePushState();
+        this.handleScrollPosition();
+        this.cache = null;
+        this.state = {};
+        this.request = null;
+        trigger_1.default(document, ['pjax:complete', 'pjax:success']);
+    };
     Pjax.prototype.handleSwitches = function (switchQueue) {
         switchQueue.map(function (switchObj) {
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
-            if (switchObj.newEl.className === '')
-                switchObj.oldEl.removeAttribute('class');
-            else
-                switchObj.oldEl.className = switchObj.newEl.className;
         });
+        this.finalize();
     };
-    Pjax.prototype.switchSelectors = function (selectors, toEl, fromEl, options) {
+    Pjax.prototype.switchSelectors = function (selectors, toEl, fromEl) {
         var _this = this;
         var switchQueue = [];
         selectors.forEach(function (selector) {
@@ -130,7 +182,7 @@ var Pjax = (function () {
                 console.log(e);
             }
         }
-        this.switchSelectors(this.options.selectors, this.cache, document, this.options);
+        this.switchSelectors(this.options.selectors, this.cache, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
         var tempEl = document.implementation.createHTMLDocument('globals');
@@ -140,7 +192,7 @@ var Pjax = (function () {
             return tempEl;
         return null;
     };
-    Pjax.prototype.cacheContent = function (responseText, eOptions) {
+    Pjax.prototype.cacheContent = function (responseText) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
             trigger_1.default(document, ['pjax:error']);
@@ -151,6 +203,23 @@ var Pjax = (function () {
         if (this.options.debug)
             console.log('Cached Content: ', this.cache);
     };
+    Pjax.prototype.loadContent = function (responseText) {
+        var tempEl = this.parseContent(responseText);
+        if (tempEl === null) {
+            trigger_1.default(document, ['pjax:error']);
+            return;
+        }
+        tempEl.documentElement.innerHTML = responseText;
+        if (document.activeElement && contains_1.default(document, this.options.selectors, document.activeElement)) {
+            try {
+                document.activeElement.blur();
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }
+        this.switchSelectors(this.options.selectors, tempEl, document);
+    };
     Pjax.prototype.handleResponse = function (e, eOptions) {
         if (this.options.debug)
             console.log('XML Http Request Status: ', this.request.status);
@@ -159,15 +228,17 @@ var Pjax = (function () {
             trigger_1.default(document, ['pjax:error']);
             return;
         }
-        this.state.href = request.responseURL;
-        this.state.options = eOptions;
-        switch (eOptions.triggerElement.getAttribute(this.options.attrState)) {
+        var loadType = (eOptions !== null) ? eOptions.triggerElement.getAttribute(this.options.attrState) : null;
+        switch (loadType) {
             case 'prefetch':
-                this.cacheContent(request.responseText, eOptions);
+                this.cacheContent(request.responseText);
+                break;
+            default:
+                this.loadContent(request.responseText);
                 break;
         }
     };
-    Pjax.prototype.doRequest = function (href, options) {
+    Pjax.prototype.doRequest = function (href) {
         var _this = this;
         var requestOptions = this.options.requestOptions || {};
         var reqeustMethod = (requestOptions.requestMethod || 'GET').toUpperCase();
@@ -209,7 +280,7 @@ var Pjax = (function () {
             console.log('Prefetching: ', href);
         this.abortRequest();
         trigger_1.default(document, ['pjax:prefetch']);
-        this.doRequest(href, eOptions)
+        this.doRequest(href)
             .then(function (e) { _this.handleResponse(e, eOptions); })
             .catch(function (e) {
             if (_this.options.debug)
@@ -217,20 +288,26 @@ var Pjax = (function () {
         });
     };
     Pjax.prototype.handleLoad = function (href, eOptions) {
+        var _this = this;
         if (this.cache !== null) {
             if (this.options.debug)
                 console.log('Loading Cached: ', href);
             this.loadCachedContent();
-            return;
         }
         else if (this.request !== null) {
             if (this.options.debug)
                 console.log('Loading Prefetch: ', href);
-            return;
         }
         else {
             if (this.options.debug)
                 console.log('Loading: ', href);
+            trigger_1.default(document, ['pjax:send']);
+            this.doRequest(href)
+                .then(function (e) { _this.handleResponse(e, eOptions); })
+                .catch(function (e) {
+                if (_this.options.debug)
+                    console.log('XHR Request Error: ', e);
+            });
         }
     };
     Pjax.prototype.clearPrefetch = function () {
