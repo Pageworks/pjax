@@ -91,12 +91,7 @@ class Pjax{
     handlePopstate(e: PopStateEvent){
         if(e.state){
             if(this.options.debug) console.log('Hijacking Popstate Event');
-
-            e.preventDefault();
-
-            this.lastUUID = e.state.uuid;
-
-            this.loadUrl(e.state.url, null);
+            this.loadUrl(e.state.url, 'popstate');
         }
     }
 
@@ -116,11 +111,11 @@ class Pjax{
      * @param href string
      * @param options object
      */
-    loadUrl(href:string, eOptions:globals.EventOptions){
+    loadUrl(href:string, loadType:string){
         this.abortRequest();
 
         if(this.cache === null){
-            this.handleLoad(href, eOptions);
+            this.handleLoad(href, loadType);
         }else{
             this.loadCachedContent();
         }
@@ -129,6 +124,7 @@ class Pjax{
     handlePushState(){
         if(this.state !== {}){
             if(this.state.history){
+                if(this.options.debug) console.log('Pushing History State: ', this.state);
                 this.lastUUID = uuid();
                 window.history.pushState({
                     url: this.state.url,
@@ -137,6 +133,7 @@ class Pjax{
                     scrollPos: [0,0]
                 }, this.state.title, this.state.url);
             }else{
+                if(this.options.debug) console.log('Replacing History State: ', this.state);
                 this.lastUUID = uuid();
                 window.history.replaceState({
                     url: this.state.url,
@@ -181,14 +178,9 @@ class Pjax{
     finalize(){
         if(this.options.debug) console.log('Finishing Pjax');
 
-        this.state = {
-            url: this.request.responseURL,
-            title: document.title,
-            history: true,
-            scrollPos: [0, window.scrollY]
-        };
-
-        if(this.options.debug) console.log('Setting History State: ', this.state);
+        this.state.url = this.request.responseURL;
+        this.state.title = document.title;
+        this.state.scrollPos = [0, window.scrollY];
 
         this.handlePushState();
         this.handleScrollPosition();
@@ -329,7 +321,7 @@ class Pjax{
      * @param e XMLHttpRequest
      * @param eOptions globals.EventOptions
      */
-    handleResponse(e:Event, eOptions:globals.EventOptions){
+    handleResponse(e:Event, loadType:string){
         if(this.options.debug) console.log('XML Http Request Status: ', this.request.status);
 
         const request = this.request;
@@ -339,13 +331,17 @@ class Pjax{
             return;
         }
 
-        let loadType =  (eOptions !== null) ? eOptions.triggerElement.getAttribute(this.options.attrState) : null;
-
         switch(loadType){
             case 'prefetch':
+                this.state.history = true;
                 this.cacheContent(request.responseText);
                 break;
+            case 'popstate':
+                this.state.history = false;
+                this.loadContent(request.responseText);
+                break;
             default:
+                this.state.history = true;
                 this.loadContent(request.responseText);
                 break;
         }
@@ -398,7 +394,7 @@ class Pjax{
      * @param href string
      * @param eOptions globals.EventOptions
      */
-    handlePrefetch(href:string, eOptions:globals.EventOptions){
+    handlePrefetch(href:string){
         if(this.options.debug) console.log('Prefetching: ', href);
 
         this.abortRequest();
@@ -406,13 +402,13 @@ class Pjax{
         trigger(document, ['pjax:prefetch']);
 
         this.doRequest(href)
-        .then((e:Event)=>{ this.handleResponse(e, eOptions); })
+        .then((e:Event)=>{ this.handleResponse(e, 'prefetch'); })
         .catch((e:ErrorEvent)=>{
             if(this.options.debug) console.log('XHR Request Error: ', e);
         });
     }
 
-    handleLoad(href:string, eOptions:globals.EventOptions){
+    handleLoad(href:string, loadType:string){
         if(this.cache !== null){
             if(this.options.debug) console.log('Loading Cached: ', href);
             this.loadCachedContent();
@@ -423,7 +419,7 @@ class Pjax{
             if(this.options.debug) console.log('Loading: ', href);
             trigger(document, ['pjax:send']);
             this.doRequest(href)
-            .then((e:Event)=>{ this.handleResponse(e, eOptions); })
+            .then((e:Event)=>{ this.handleResponse(e, loadType); })
             .catch((e:ErrorEvent)=>{
                 if(this.options.debug) console.log('XHR Request Error: ', e);
             });

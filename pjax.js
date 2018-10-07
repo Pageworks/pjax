@@ -50,9 +50,7 @@ var Pjax = (function () {
         if (e.state) {
             if (this.options.debug)
                 console.log('Hijacking Popstate Event');
-            e.preventDefault();
-            this.lastUUID = e.state.uuid;
-            this.loadUrl(e.state.url, null);
+            this.loadUrl(e.state.url, 'popstate');
         }
     };
     Pjax.prototype.abortRequest = function () {
@@ -63,10 +61,10 @@ var Pjax = (function () {
             this.request = null;
         }
     };
-    Pjax.prototype.loadUrl = function (href, eOptions) {
+    Pjax.prototype.loadUrl = function (href, loadType) {
         this.abortRequest();
         if (this.cache === null) {
-            this.handleLoad(href, eOptions);
+            this.handleLoad(href, loadType);
         }
         else {
             this.loadCachedContent();
@@ -75,6 +73,8 @@ var Pjax = (function () {
     Pjax.prototype.handlePushState = function () {
         if (this.state !== {}) {
             if (this.state.history) {
+                if (this.options.debug)
+                    console.log('Pushing History State: ', this.state);
                 this.lastUUID = uuid_1.default();
                 window.history.pushState({
                     url: this.state.url,
@@ -84,6 +84,8 @@ var Pjax = (function () {
                 }, this.state.title, this.state.url);
             }
             else {
+                if (this.options.debug)
+                    console.log('Replacing History State: ', this.state);
                 this.lastUUID = uuid_1.default();
                 window.history.replaceState({
                     url: this.state.url,
@@ -123,14 +125,9 @@ var Pjax = (function () {
     Pjax.prototype.finalize = function () {
         if (this.options.debug)
             console.log('Finishing Pjax');
-        this.state = {
-            url: this.request.responseURL,
-            title: document.title,
-            history: true,
-            scrollPos: [0, window.scrollY]
-        };
-        if (this.options.debug)
-            console.log('Setting History State: ', this.state);
+        this.state.url = this.request.responseURL;
+        this.state.title = document.title;
+        this.state.scrollPos = [0, window.scrollY];
         this.handlePushState();
         this.handleScrollPosition();
         this.cache = null;
@@ -220,7 +217,7 @@ var Pjax = (function () {
         }
         this.switchSelectors(this.options.selectors, tempEl, document);
     };
-    Pjax.prototype.handleResponse = function (e, eOptions) {
+    Pjax.prototype.handleResponse = function (e, loadType) {
         if (this.options.debug)
             console.log('XML Http Request Status: ', this.request.status);
         var request = this.request;
@@ -228,12 +225,17 @@ var Pjax = (function () {
             trigger_1.default(document, ['pjax:error']);
             return;
         }
-        var loadType = (eOptions !== null) ? eOptions.triggerElement.getAttribute(this.options.attrState) : null;
         switch (loadType) {
             case 'prefetch':
+                this.state.history = true;
                 this.cacheContent(request.responseText);
                 break;
+            case 'popstate':
+                this.state.history = false;
+                this.loadContent(request.responseText);
+                break;
             default:
+                this.state.history = true;
                 this.loadContent(request.responseText);
                 break;
         }
@@ -274,20 +276,20 @@ var Pjax = (function () {
             _this.request = request;
         });
     };
-    Pjax.prototype.handlePrefetch = function (href, eOptions) {
+    Pjax.prototype.handlePrefetch = function (href) {
         var _this = this;
         if (this.options.debug)
             console.log('Prefetching: ', href);
         this.abortRequest();
         trigger_1.default(document, ['pjax:prefetch']);
         this.doRequest(href)
-            .then(function (e) { _this.handleResponse(e, eOptions); })
+            .then(function (e) { _this.handleResponse(e, 'prefetch'); })
             .catch(function (e) {
             if (_this.options.debug)
                 console.log('XHR Request Error: ', e);
         });
     };
-    Pjax.prototype.handleLoad = function (href, eOptions) {
+    Pjax.prototype.handleLoad = function (href, loadType) {
         var _this = this;
         if (this.cache !== null) {
             if (this.options.debug)
@@ -303,7 +305,7 @@ var Pjax = (function () {
                 console.log('Loading: ', href);
             trigger_1.default(document, ['pjax:send']);
             this.doRequest(href)
-                .then(function (e) { _this.handleResponse(e, eOptions); })
+                .then(function (e) { _this.handleResponse(e, loadType); })
                 .catch(function (e) {
                 if (_this.options.debug)
                     console.log('XHR Request Error: ', e);

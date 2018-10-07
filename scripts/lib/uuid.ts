@@ -3,5 +3,5 @@
  * Could be replaced by actual UUID generation later
  */
 export default ()=>{
-    return 'pjax_' + Date.now();
+    return Date.now().toString();
 }

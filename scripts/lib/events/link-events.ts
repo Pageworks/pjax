@@ -74,7 +74,7 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     }
 
     el.setAttribute(pjax.options.attrState, 'load');
-    pjax.handleLoad(el.href, eventOptions);
+    pjax.handleLoad(el.href, el.getAttribute(pjax.options.attrState));
 }
 
 /**
