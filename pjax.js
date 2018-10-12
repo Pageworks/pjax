@@ -167,8 +167,11 @@ var Pjax = (function () {
                 console.log('Couldn\'t find anything to switch');
             return;
         }
-        else
+        else {
+            if (this.options.titleSwitch)
+                document.title = toEl.title;
             this.handleSwitches(switchQueue);
+        }
     };
     Pjax.prototype.loadCachedContent = function () {
         if (document.activeElement && contains_1.default(document, this.options.selectors, document.activeElement)) {

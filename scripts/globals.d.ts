@@ -1,21 +1,22 @@
 declare namespace pjax{
 
     export interface IOptions{
-        elements?: string,
-        selectors?: string[],
-        switches?: StringKeyedObject<Switch>,
-        switchesOptions?: StringKeyedObject,
-        history?: boolean,
-        cacheBust?: boolean,
-        scrollTo?: number,
-        debug?: boolean,
-        timeout?: number,
-        attrState?: string,
+        elements?: string
+        selectors?: string[]
+        switches?: StringKeyedObject<Switch>
+        switchesOptions?: StringKeyedObject
+        history?: boolean
+        cacheBust?: boolean
+        scrollTo?: number
+        debug?: boolean
+        timeout?: number
+        attrState?: string
+        titleSwitch?: boolean
         requestOptions?:{
-            requestUrl?: string;
-            requestMethod?: string;
-            requestParams?: IRequestParams[];
-            formData?: FormData;
+            requestUrl?: string
+            requestMethod?: string
+            requestParams?: IRequestParams[]
+            formData?: FormData
         }
     }
 

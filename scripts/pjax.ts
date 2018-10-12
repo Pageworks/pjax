@@ -195,9 +195,6 @@ class Pjax{
     handleSwitches(switchQueue:Array<globals.SwitchOptions>){
         switchQueue.map((switchObj)=>{
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
-
-            // if(switchObj.newEl.className === '') switchObj.oldEl.removeAttribute('class');
-            // else switchObj.oldEl.className = switchObj.newEl.className;
         });
 
         this.finalize();
@@ -232,7 +229,10 @@ class Pjax{
             if(this.options.debug) console.log('Couldn\'t find anything to switch');
             return;
         }
-        else this.handleSwitches(switchQueue);
+        else{
+            if(this.options.titleSwitch) document.title = toEl.title;
+            this.handleSwitches(switchQueue);
+        }
     }
 
     /**
