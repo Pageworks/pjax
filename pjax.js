@@ -40,6 +40,7 @@ var Pjax = (function () {
     Pjax.prototype.parseDOM = function (el) {
         var _this = this;
         var elements = this.getElements(el);
+        console.log(elements);
         elements.forEach(function (el) {
             check_element_1.default(el, _this);
         });
@@ -138,8 +139,10 @@ var Pjax = (function () {
         trigger_1.default(document, ['pjax:complete', 'pjax:success']);
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
+        var _this = this;
         switchQueue.map(function (switchObj) {
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
+            _this.parseDOM(switchObj.oldEl);
         });
         this.finalize();
     };

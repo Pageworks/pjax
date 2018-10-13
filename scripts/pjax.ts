@@ -76,6 +76,7 @@ class Pjax{
      */
     parseDOM(el:Element){
         const elements = this.getElements(el);
+        console.log(elements);
         elements.forEach((el)=>{
             checkElement(el, this);
         });
@@ -198,6 +199,7 @@ class Pjax{
     handleSwitches(switchQueue:Array<globals.SwitchOptions>){
         switchQueue.map((switchObj)=>{
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
+            this.parseDOM(switchObj.oldEl);
         });
 
         this.finalize();
