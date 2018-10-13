@@ -18,6 +18,7 @@ var Pjax = (function () {
         this.options = parse_options_1.default(options);
         this.lastUUID = uuid_1.default();
         this.request = null;
+        this.confirmed = false;
         if (this.options.debug)
             console.log('Pjax Options:', this.options);
         this.init();
@@ -133,6 +134,7 @@ var Pjax = (function () {
         this.cache = null;
         this.state = {};
         this.request = null;
+        this.confirmed = false;
         trigger_1.default(document, ['pjax:complete', 'pjax:success']);
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
@@ -231,7 +233,10 @@ var Pjax = (function () {
         switch (loadType) {
             case 'prefetch':
                 this.state.history = true;
-                this.cacheContent(request.responseText);
+                if (this.confirmed)
+                    this.loadContent(request.responseText);
+                else
+                    this.cacheContent(request.responseText);
                 break;
             case 'popstate':
                 this.state.history = false;
@@ -302,6 +307,7 @@ var Pjax = (function () {
         else if (this.request !== null) {
             if (this.options.debug)
                 console.log('Loading Prefetch: ', href);
+            this.confirmed = true;
         }
         else {
             if (this.options.debug)
@@ -316,9 +322,10 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.clearPrefetch = function () {
+        this.cache = null;
+        this.confirmed = false;
         this.abortRequest();
         trigger_1.default(document, ['pjax:cancel']);
-        this.cache = null;
     };
     return Pjax;
 }());

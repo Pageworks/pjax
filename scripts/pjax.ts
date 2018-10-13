@@ -17,6 +17,7 @@ class Pjax{
     lastUUID:   string
     request:    XMLHttpRequest
     links:      NodeList
+    confirmed:  boolean
 
     constructor(options?:globals.IOptions){
         this.state = {
@@ -25,10 +26,11 @@ class Pjax{
             history: true,
             scrollPos: [0,0]
         };
-        this.cache = null;
-        this.options = parseOptions(options);
-        this.lastUUID = uuid();
-        this.request = null;
+        this.cache      = null;
+        this.options    = parseOptions(options);
+        this.lastUUID   = uuid();
+        this.request    = null;
+        this.confirmed  = false;
 
         if(this.options.debug) console.log('Pjax Options:', this.options);
 
@@ -185,9 +187,10 @@ class Pjax{
         this.handlePushState();
         this.handleScrollPosition();
 
-        this.cache = null;
-        this.state = {};
-        this.request = null;
+        this.cache      = null;
+        this.state      = {};
+        this.request    = null;
+        this.confirmed  = false;
 
         trigger(document, ['pjax:complete', 'pjax:success']);
     }
@@ -334,7 +337,8 @@ class Pjax{
         switch(loadType){
             case 'prefetch':
                 this.state.history = true;
-                this.cacheContent(request.responseText);
+                if(this.confirmed) this.loadContent(request.responseText);
+                else this.cacheContent(request.responseText);
                 break;
             case 'popstate':
                 this.state.history = false;
@@ -408,14 +412,20 @@ class Pjax{
         });
     }
 
+    /**
+     * Called when use clicks a link, even if we're already prefetching
+     * @param href
+     * @param loadType
+     */
     handleLoad(href:string, loadType:string){
-        if(this.cache !== null){
+        if(this.cache !== null){ // Content is cached
             if(this.options.debug) console.log('Loading Cached: ', href);
             this.loadCachedContent();
         }
-        else if(this.request !== null){
+        else if(this.request !== null){ // We're still waiting for content
             if(this.options.debug) console.log('Loading Prefetch: ', href);
-        }else{
+            this.confirmed = true;
+        }else{ // Not prefetching so do request
             if(this.options.debug) console.log('Loading: ', href);
             trigger(document, ['pjax:send']);
             this.doRequest(href)
@@ -433,9 +443,10 @@ class Pjax{
      * Clear the cache
      */
     clearPrefetch(){
+        this.cache      = null;
+        this.confirmed  = false;
         this.abortRequest();
         trigger(document, ['pjax:cancel']);
-        this.cache = null;
     }
 }
 
