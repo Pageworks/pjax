@@ -29,7 +29,7 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
     // Ignore external links
     if(el.protocol !== window.location.protocol || el.host !== window.location.host) return 'external';
 
-    // Ignore anchors on the smae page
+    // Ignore anchors on the same page
     if(el.hash && el.href.replace(el.hash, '') === window.location.href.replace(location.hash, '')) return 'anchor';
 
     // Ignore empty anchor
@@ -68,12 +68,9 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     e.preventDefault();
 
     // Don't do 'nothing' if the user is trying to reload the page by clicking on the same link twice
-    if(el.href === window.location.href.split('#')[0]){
-        el.setAttribute(pjax.options.attrState, 'reload');
-        return;
-    }
-
-    el.setAttribute(pjax.options.attrState, 'load');
+    if(el.href === window.location.href.split('#')[0]) el.setAttribute(pjax.options.attrState, 'reload');
+    else el.setAttribute(pjax.options.attrState, 'load');
+    
     pjax.handleLoad(el.href, el.getAttribute(pjax.options.attrState));
 }
 

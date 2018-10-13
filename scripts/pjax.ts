@@ -346,6 +346,10 @@ class Pjax{
                 this.state.history = false;
                 this.loadContent(request.responseText);
                 break;
+            case 'reload':
+                this.state.history = false;
+                this.loadContent(request.responseText);
+                break;
             default:
                 this.state.history = true;
                 this.loadContent(request.responseText);
