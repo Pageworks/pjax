@@ -44,9 +44,6 @@ var Pjax = (function () {
             check_element_1.default(el, _this);
         });
     };
-    Pjax.prototype.handleRefresh = function (el) {
-        this.parseDOM(el);
-    };
     Pjax.prototype.handlePopstate = function (e) {
         if (e.state) {
             if (this.options.debug)
@@ -232,6 +229,7 @@ var Pjax = (function () {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
             trigger_1.default(document, ['pjax:error']);
+            this.lastChance(this.request.responseURL);
             return;
         }
         tempEl.documentElement.innerHTML = responseText;

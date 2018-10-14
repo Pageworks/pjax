@@ -39,6 +39,7 @@ class Pjax{
 
     /**
      * Declare all initial event listeners
+     * Calls parseDOM to init all base link event listeners
      */
     init(){
         window.addEventListener('popstate', e => this.handlePopstate(e));
@@ -81,9 +82,9 @@ class Pjax{
         });
     }
 
-    handleRefresh(el:Element){
-        this.parseDOM(el);
-    }
+    // handleRefresh(el:Element){
+    //     this.parseDOM(el);
+    // }
 
     /**
      * Handles the windows popstate event
@@ -97,6 +98,11 @@ class Pjax{
         }
     }
 
+    /**
+     * Called when we need to abort an XMLHttpRequest
+     * If the request is null do nothing
+     * If the request is not ready abort and make null
+     */
     abortRequest(){
         if(this.request === null) return;
         if(this.request.readyState !== 4){
@@ -123,6 +129,12 @@ class Pjax{
         }
     }
 
+    /**
+     * First we check if we have a state object to use with the history state
+     * If we do and we want to defind our browsers history get a new UUID
+     * Then use `window.history.pushState` to set a new browser history state
+     * If we're not defining the browsers history use `window.history.replaceState`
+     */
     handlePushState(){
         if(this.state !== {}){
             if(this.state.history){
@@ -147,6 +159,13 @@ class Pjax{
         }
     }
 
+    /**
+     * If history is defined check if there is a hash we need to jump to
+     * If a hash exist get our target and set the current offset top for the window
+     * Then scroll to the hash's position
+     * Otherwise scroll to the default scroll position defined in our options object
+     * Otherwise if the state has a scroll position set scroll to the histroy states scroll position
+     */
     handleScrollPosition(){
         if(this.state.history){
             let temp = document.createElement('a');
@@ -177,6 +196,12 @@ class Pjax{
         }
     }
 
+    /**
+     * Called as our final step when switching pages
+     * This method resets our object back to their initial values
+     * while also handling the history state and the scroll position
+     * Triggers a complete and success call when finished
+     */
     finalize(){
         if(this.options.debug) console.log('Finishing Pjax');
 
@@ -195,6 +220,14 @@ class Pjax{
         trigger(document, ['pjax:complete', 'pjax:success']);
     }
 
+    /**
+     * This method takes a switch queue and swapps out the innerHTML of our 'old' element with the
+     * content returned by the XMLHttpRequest in it's responseText
+     * Once the innerHTML is switched we call `this.parseDOM` and pass in the 'old' element (now containing the new elements)
+     * so we can set any event listeners to elements within our new html
+     * Calls `this.finalize` when finished
+     * @param switchQueue
+     */
     handleSwitches(switchQueue:Array<globals.SwitchOptions>){
         switchQueue.map((switchObj)=>{
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
@@ -204,6 +237,20 @@ class Pjax{
         this.finalize();
     }
 
+    /**
+     * This method begins by building an empty array of switches
+     * The switch queue will be passed to our `handleSwitches` method
+     * Take all selectors and grab the new elements and old elements from the documents provided
+     * If we don't have the same number of elements to switch to it means the documents (pages) don't have the same layout
+     * Build switch objects based on how many new elements we have to switch to
+     * Push the new switch objects into the switch queue
+     * If the switch queue is empty we couldn't find any containers in the documents to swap
+     * If emtpy call `this.lastChance` so we can let the browser switch to the page
+     * Otherwise set the document title and then call `this.handleSwitches` and provide the switch queue
+     * @param selectors
+     * @param toEl
+     * @param fromEl
+     */
     switchSelectors(selectors: string[], toEl: Document, fromEl: Document){
         let switchQueue:Array<globals.SwitchOptions> = [];
 
@@ -240,6 +287,12 @@ class Pjax{
         }
     }
 
+    /**
+     * Called when something goes wrong
+     * This method is our failsafe for the Pjax application
+     * This method provides base level and expected browser response to a page change
+     * @param uri
+     */
     lastChance(uri:string){
         if(this.options.debug) console.log('Cached content has a response of ', this.cache.status,' but we require a success response, fallback loading uri ', uri);
         window.location.href = uri;
@@ -260,6 +313,7 @@ class Pjax{
      * If we have cached content we need to check if there is an active element and if the document contains our selectors and active element
      * If it does blur the HTMLElement
      * Then tell Pjax to switch selectors
+     * Can be aborted if our cached content has a non-200 response status, if we need to abort due to an issue call `this.lastChance`
      */
     loadCachedContent(){
         if(!this.statusCheck()){
@@ -321,11 +375,21 @@ class Pjax{
         if(this.options.debug) console.log('Cached Content: ', this.cache);
     }
 
+    /**
+     * Called when we need to handle a `click` event and the page is loaded
+     * First we parse the response text to see if we can build an artificial document
+     * If we can't respond with an error and call `this.lastChance`
+     * Otherwise set the documents innerHTML with our response text
+     * Remove the :focus of any inputs
+     * Call our switch selectors method
+     * @param responseText
+     */
     loadContent(responseText:string){
         let tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
             trigger(document, ['pjax:error']);
+            this.lastChance(this.request.responseURL);
             return;
         }
 
@@ -343,11 +407,9 @@ class Pjax{
     /**
      * This method handles our different response types
      * First we check if the response has HTML for us to handle
-     * If we have something to work with prepare our state object
-     * with the response's URL and our current eOptions
-     * Then get the state attribute from our trigger element
      * If the state was a prefetch cache our response
-     * @todo Error reporting/handling for 404, 301, 302, 500
+     * Or if the request was confirmed (user clicked link during prefetch response) handle load
+     * Set our history state based on they load type (set in link-events.ts)
      * @param e XMLHttpRequest
      * @param eOptions globals.EventOptions
      */
@@ -382,6 +444,15 @@ class Pjax{
         }
     }
 
+    /**
+     * This method takes the link we need to send an XMLHttpRequest to and handles the request
+     * First we defind our request's params and we begin to build our request
+     * If we have query params we prepare our new href
+     * If we are cache busting we apply a timestamp to the href
+     * Then we return an ES6 promise to the method that called this method
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest
+     * @param href
+     */
     doRequest(href:string){
         const requestOptions        = this.options.requestOptions || {};
         const reqeustMethod         = (requestOptions.requestMethod || 'GET').toUpperCase();
