@@ -2,7 +2,7 @@
 Pjax enables fast and easy AJAX navigation on any website using `pushState` and `XHR`. No more full page reloads, no more multipul HTTP request. Written entirely in TypeScript, transpiled into vanilla JavaScript.
 
 ## Installation
-Add Pjax as a dependency to your `package.json` with `"pjax": "github:Pageworks/fuel-pjax#x.x.x"`
+Add Pjax as a dependency to your `package.json` with `"pjax": "github:Pageworks/fuel-pjax#x.x.x"`. Alternatively you can include `pjax-x.x.x.js` in your project by downloading the compiled and browserified `pjax-x.x.x.js` version and including the script `<script src="pjax-x.x.x.js"></script>` into your HTML document.
 
 ## How Pjax Works
 Pjax loads pages using AJAX and updates the browser's current URL using `pushState()` without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user triggers an `onmouseleave` event the `XHR` request is canceled. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
