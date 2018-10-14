@@ -76,7 +76,6 @@ class Pjax{
      */
     parseDOM(el:Element){
         const elements = this.getElements(el);
-        console.log(elements);
         elements.forEach((el)=>{
             checkElement(el, this);
         });
@@ -232,6 +231,7 @@ class Pjax{
         
         if(switchQueue.length === 0){
             if(this.options.debug) console.log('Couldn\'t find anything to switch');
+            this.lastChance(this.request.responseURL);
             return;
         }
         else{
@@ -245,6 +245,10 @@ class Pjax{
         window.location.href = uri;
     }
 
+    /**
+     * Check if the cached content has a successful response
+     * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+     */
     statusCheck(){
         for(let status = 200; status <= 206; status++){
             if(this.cache.status === status) return true;

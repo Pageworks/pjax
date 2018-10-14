@@ -40,7 +40,6 @@ var Pjax = (function () {
     Pjax.prototype.parseDOM = function (el) {
         var _this = this;
         var elements = this.getElements(el);
-        console.log(elements);
         elements.forEach(function (el) {
             check_element_1.default(el, _this);
         });
@@ -170,6 +169,7 @@ var Pjax = (function () {
         if (switchQueue.length === 0) {
             if (this.options.debug)
                 console.log('Couldn\'t find anything to switch');
+            this.lastChance(this.request.responseURL);
             return;
         }
         else {
