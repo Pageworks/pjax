@@ -20,6 +20,12 @@ declare namespace pjax{
         }
     }
 
+    export interface CacheObject{
+        status: number
+        html: Document
+        url: string
+    }
+
     export interface StateObject{
         url?: string
         title?: string

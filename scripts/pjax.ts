@@ -12,7 +12,7 @@ declare const module:any
 
 class Pjax{
     state:      globals.StateObject
-    cache:      Document
+    cache:      globals.CacheObject
     options:    globals.IOptions
     lastUUID:   string
     request:    XMLHttpRequest
@@ -240,19 +240,36 @@ class Pjax{
         }
     }
 
+    lastChance(uri:string){
+        if(this.options.debug) console.log('Cached content has a response of ', this.cache.status,' but we require a success response, fallback loading uri ', uri);
+        window.location.href = uri;
+    }
+
+    statusCheck(){
+        for(let status = 200; status <= 206; status++){
+            if(this.cache.status === status) return true;
+        }
+        return false;
+    }
+
     /**
      * If we have cached content we need to check if there is an active element and if the document contains our selectors and active element
      * If it does blur the HTMLElement
      * Then tell Pjax to switch selectors
      */
     loadCachedContent(){
+        if(!this.statusCheck()){
+            this.lastChance(this.cache.url);
+            return;
+        }
+
         if(document.activeElement && contains(document, this.options.selectors, document.activeElement)){
             try{
                 (document.activeElement as HTMLElement).blur();
             }catch(e){ console.log(e) }
         }
 
-        this.switchSelectors(this.options.selectors, this.cache, document);
+        this.switchSelectors(this.options.selectors, this.cache.html, document);
     }
 
     /**
@@ -282,7 +299,7 @@ class Pjax{
      * @param responseText string
      * @param eOptions globals.EventOptions
      */
-    cacheContent(responseText:string){
+    cacheContent(responseText:string, status:number, uri:string){
         let tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
@@ -291,7 +308,11 @@ class Pjax{
         }
 
         tempEl.documentElement.innerHTML = responseText;
-        this.cache = tempEl;
+        this.cache = {
+            status: status,
+            html: tempEl,
+            url: uri
+        }
 
         if(this.options.debug) console.log('Cached Content: ', this.cache);
     }
@@ -340,7 +361,7 @@ class Pjax{
             case 'prefetch':
                 this.state.history = true;
                 if(this.confirmed) this.loadContent(request.responseText);
-                else this.cacheContent(request.responseText);
+                else this.cacheContent(request.responseText, request.status, request.responseURL);
                 break;
             case 'popstate':
                 this.state.history = false;

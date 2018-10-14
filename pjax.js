@@ -178,7 +178,23 @@ var Pjax = (function () {
             this.handleSwitches(switchQueue);
         }
     };
+    Pjax.prototype.lastChance = function (uri) {
+        if (this.options.debug)
+            console.log('Cached content has a response of ', this.cache.status, ' but we require a success response, fallback loading uri ', uri);
+        window.location.href = uri;
+    };
+    Pjax.prototype.statusCheck = function () {
+        for (var status_1 = 200; status_1 <= 206; status_1++) {
+            if (this.cache.status === status_1)
+                return true;
+        }
+        return false;
+    };
     Pjax.prototype.loadCachedContent = function () {
+        if (!this.statusCheck()) {
+            this.lastChance(this.cache.url);
+            return;
+        }
         if (document.activeElement && contains_1.default(document, this.options.selectors, document.activeElement)) {
             try {
                 document.activeElement.blur();
@@ -187,7 +203,7 @@ var Pjax = (function () {
                 console.log(e);
             }
         }
-        this.switchSelectors(this.options.selectors, this.cache, document);
+        this.switchSelectors(this.options.selectors, this.cache.html, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
         var tempEl = document.implementation.createHTMLDocument('globals');
@@ -197,14 +213,18 @@ var Pjax = (function () {
             return tempEl;
         return null;
     };
-    Pjax.prototype.cacheContent = function (responseText) {
+    Pjax.prototype.cacheContent = function (responseText, status, uri) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
             trigger_1.default(document, ['pjax:error']);
             return;
         }
         tempEl.documentElement.innerHTML = responseText;
-        this.cache = tempEl;
+        this.cache = {
+            status: status,
+            html: tempEl,
+            url: uri
+        };
         if (this.options.debug)
             console.log('Cached Content: ', this.cache);
     };
@@ -239,7 +259,7 @@ var Pjax = (function () {
                 if (this.confirmed)
                     this.loadContent(request.responseText);
                 else
-                    this.cacheContent(request.responseText);
+                    this.cacheContent(request.responseText, request.status, request.responseURL);
                 break;
             case 'popstate':
                 this.state.history = false;
