@@ -4,7 +4,7 @@ import pjax from '../globals'; // Imports IOptions declaration
  * Parse options based on the IOptions object passed in by the Pjax class' constructor
  */
 export default (options:pjax.IOptions = null)=>{
-    let parsedOptions               = (options !== null) ? options : {};
+    const parsedOptions               = (options !== null) ? options : {};
         parsedOptions.elements      = (options !== null && options.elements !== undefined) ? options.elements : 'a[href]';
         parsedOptions.selectors     = (options !== null && options.selectors !== undefined) ? options.selectors : ['title', '.js-pjax'];
         parsedOptions.switches      = (options !== null && options.switches !== undefined) ? options.switches : {};

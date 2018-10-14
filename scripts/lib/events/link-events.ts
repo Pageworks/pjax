@@ -13,10 +13,12 @@ import globals from '../../globals';
  * @param e
  */
 const isDefaultPrevented = (el:HTMLAnchorElement, e:Event)=>{
-    if(e.defaultPrevented) return true;
-    else if(el.getAttribute('prevent-default') !== null) return true;
-    else if(el.classList.contains('no-transition')) return true;
-    else return false;
+    let isPrevented = false;
+    if(e.defaultPrevented) isPrevented = true;
+    else if(el.getAttribute('prevent-default') !== null) isPrevented = true;
+    else if(el.classList.contains('no-transition')) isPrevented = true;
+    
+    return isPrevented;
 }
 
 /**
@@ -33,7 +35,7 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
     if(el.hash && el.href.replace(el.hash, '') === window.location.href.replace(location.hash, '')) return 'anchor';
 
     // Ignore empty anchor
-    if(el.href === window.location.href.split('#')[0] + '#') return 'anchor-empty';
+    if(el.href === `${window.location.href.split('#')[0]}, '#'`) return 'anchor-empty';
 
     return null;
 }
@@ -55,11 +57,11 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
 const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
 
-    let eventOptions:globals.EventOptions = {
+    const eventOptions:globals.EventOptions = {
         triggerElement: el
     };
 
-    let attrValue = checkForAbort(el, e);
+    const attrValue = checkForAbort(el, e);
     if(attrValue !== null){
         el.setAttribute(pjax.options.attrState, attrValue);
         return;
@@ -94,11 +96,11 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
         return;
     }
 
-    let eventOptions:globals.EventOptions = {
+    const eventOptions:globals.EventOptions = {
         triggerElement: el
     };
 
-    let attrValue = checkForAbort(el, e);
+    const attrValue = checkForAbort(el, e);
     if(attrValue !== null){
         el.setAttribute(pjax.options.attrState, attrValue);
         return;

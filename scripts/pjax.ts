@@ -168,7 +168,7 @@ class Pjax{
      */
     handleScrollPosition(){
         if(this.state.history){
-            let temp = document.createElement('a');
+            const temp = document.createElement('a');
             temp.href = this.state.url;
             
             if(temp.hash){
@@ -252,11 +252,11 @@ class Pjax{
      * @param fromEl
      */
     switchSelectors(selectors: string[], toEl: Document, fromEl: Document){
-        let switchQueue:Array<globals.SwitchOptions> = [];
+        const switchQueue:Array<globals.SwitchOptions> = [];
 
         selectors.forEach((selector)=>{
-            let newEls = toEl.querySelectorAll(selector);
-            let oldEls = fromEl.querySelectorAll(selector);
+            const newEls = toEl.querySelectorAll(selector);
+            const oldEls = fromEl.querySelectorAll(selector);
 
             if(this.options.debug) console.log('Pjax Switch: ', selector, newEls, oldEls);
 
@@ -264,12 +264,12 @@ class Pjax{
                 if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
             }
 
-            newEls.forEach((newEl, i)=>{
-                let oldEl = oldEls[i];
+            newEls.forEach((newElement, i)=>{
+                const oldElement = oldEls[i];
 
-                let elSwitch = {
-                    newEl: newEl,
-                    oldEl: oldEl
+                const elSwitch = {
+                    newEl: newElement,
+                    oldEl: oldElement
                 };
 
                 switchQueue.push(elSwitch);
@@ -281,10 +281,9 @@ class Pjax{
             this.lastChance(this.request.responseURL);
             return;
         }
-        else{
-            if(this.options.titleSwitch) document.title = toEl.title;
-            this.handleSwitches(switchQueue);
-        }
+
+        if(this.options.titleSwitch) document.title = toEl.title;
+        this.handleSwitches(switchQueue);
     }
 
     /**
@@ -337,11 +336,11 @@ class Pjax{
      * @param responseText string
      */
     parseContent(responseText: string){
-        let tempEl = document.implementation.createHTMLDocument('globals');
+        const tempEl = document.implementation.createHTMLDocument('globals');
 
         // let htmlRegex = /<html[^>]+>/gi;
         const htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
-        let matches = responseText.match(htmlRegex);
+        const matches = responseText.match(htmlRegex);
         
         if(matches && matches.length) return tempEl;
 
@@ -357,8 +356,8 @@ class Pjax{
      * @param responseText string
      * @param eOptions globals.EventOptions
      */
-    cacheContent(responseText:string, status:number, uri:string){
-        let tempEl = this.parseContent(responseText);
+    cacheContent(responseText:string, responseStatus:number, uri:string){
+        const tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
             trigger(document, ['pjax:error']);
@@ -367,7 +366,7 @@ class Pjax{
 
         tempEl.documentElement.innerHTML = responseText;
         this.cache = {
-            status: status,
+            status: responseStatus,
             html: tempEl,
             url: uri
         }
@@ -385,7 +384,7 @@ class Pjax{
      * @param responseText
      */
     loadContent(responseText:string){
-        let tempEl = this.parseContent(responseText);
+        const tempEl = this.parseContent(responseText);
 
         if(tempEl === null){
             trigger(document, ['pjax:error']);
@@ -461,15 +460,16 @@ class Pjax{
         const request               = new XMLHttpRequest();
         let requestPayload:string   = null;
         let queryString;
+        let final                   = href;
 
         if(requestParams && requestParams.length){
-            queryString = (requestParams.map((param)=>{ return param.name + '=' + param.value })).join('&'); // Build query string
+            queryString = (requestParams.map((param)=>{ return `${param.name, '=', param.value}` })).join('&'); // Build query string
 
             switch(reqeustMethod){
                 case 'GET':
-                    href = href.split('?')[0];
-                    href += '?';
-                    href += queryString;
+                    final = href.split('?')[0];
+                    final += '?';
+                    final += queryString;
                     break;
                 case 'POST':
                     requestPayload = queryString;
@@ -477,10 +477,10 @@ class Pjax{
             }
         }
 
-        if(this.options.cacheBust) href += (queryString.length) ? ('&t=' + Date.now()) : ('t=' + Date.now());
+        if(this.options.cacheBust) final += (queryString.length) ? (`&t=${Date.now()}`) : (`t=${Date.now()}`);
 
         return new Promise((resolve, reject)=>{
-            request.open(reqeustMethod, href, true);
+            request.open(reqeustMethod, final, true);
             request.timeout = timeout;
             request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             request.setRequestHeader('X-PJAX', 'true');

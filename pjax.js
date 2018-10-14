@@ -154,11 +154,11 @@ var Pjax = (function () {
                 if (_this.options.debug)
                     console.log('DOM doesn\'t look the same on the new page');
             }
-            newEls.forEach(function (newEl, i) {
-                var oldEl = oldEls[i];
+            newEls.forEach(function (newElement, i) {
+                var oldElement = oldEls[i];
                 var elSwitch = {
-                    newEl: newEl,
-                    oldEl: oldEl
+                    newEl: newElement,
+                    oldEl: oldElement
                 };
                 switchQueue.push(elSwitch);
             });
@@ -169,11 +169,9 @@ var Pjax = (function () {
             this.lastChance(this.request.responseURL);
             return;
         }
-        else {
-            if (this.options.titleSwitch)
-                document.title = toEl.title;
-            this.handleSwitches(switchQueue);
-        }
+        if (this.options.titleSwitch)
+            document.title = toEl.title;
+        this.handleSwitches(switchQueue);
     };
     Pjax.prototype.lastChance = function (uri) {
         if (this.options.debug)
@@ -210,7 +208,7 @@ var Pjax = (function () {
             return tempEl;
         return null;
     };
-    Pjax.prototype.cacheContent = function (responseText, status, uri) {
+    Pjax.prototype.cacheContent = function (responseText, responseStatus, uri) {
         var tempEl = this.parseContent(responseText);
         if (tempEl === null) {
             trigger_1.default(document, ['pjax:error']);
@@ -218,7 +216,7 @@ var Pjax = (function () {
         }
         tempEl.documentElement.innerHTML = responseText;
         this.cache = {
-            status: status,
+            status: responseStatus,
             html: tempEl,
             url: uri
         };
@@ -282,13 +280,14 @@ var Pjax = (function () {
         var request = new XMLHttpRequest();
         var requestPayload = null;
         var queryString;
+        var final = href;
         if (requestParams && requestParams.length) {
-            queryString = (requestParams.map(function (param) { return param.name + '=' + param.value; })).join('&');
+            queryString = (requestParams.map(function (param) { return "" + (param.name, '=', param.value); })).join('&');
             switch (reqeustMethod) {
                 case 'GET':
-                    href = href.split('?')[0];
-                    href += '?';
-                    href += queryString;
+                    final = href.split('?')[0];
+                    final += '?';
+                    final += queryString;
                     break;
                 case 'POST':
                     requestPayload = queryString;
@@ -296,9 +295,9 @@ var Pjax = (function () {
             }
         }
         if (this.options.cacheBust)
-            href += (queryString.length) ? ('&t=' + Date.now()) : ('t=' + Date.now());
+            final += (queryString.length) ? ("&t=" + Date.now()) : ("t=" + Date.now());
         return new Promise(function (resolve, reject) {
-            request.open(reqeustMethod, href, true);
+            request.open(reqeustMethod, final, true);
             request.timeout = timeout;
             request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             request.setRequestHeader('X-PJAX', 'true');

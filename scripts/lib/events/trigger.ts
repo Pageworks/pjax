@@ -5,7 +5,7 @@
  */
 export default (el: Node, events: string[])=>{
     events.forEach((e)=>{
-        let event = new Event(e);
+        const event = new Event(e);
         el.dispatchEvent(event);
     });
 }
