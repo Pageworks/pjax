@@ -31,7 +31,7 @@ Obviously not all browers support `history.pushState()` so in cases where Pjax i
 
 ### Getting Started
 
-To begin using Pjax add `"pjax": "github:Pageworks/fuel-pjax#x.x.x"` to your projects `package.json` and run `npm install` or include `pjax-x.x.x.js` in your project.
+To begin using Pjax add `"pjax": "github:Pageworks/fuel-pjax#x.x.x"` to your project's `package.json` before running `npm install`. Alternatively you can include `pjax-x.x.x.js` in your project by downloading the compiled and browserified `pjax-x.x.x.js` version and including the script `<script src="pjax-x.x.x.js"></script>` into your HTML document.
 
 Start by setting up a base layout for your website.
 ```
