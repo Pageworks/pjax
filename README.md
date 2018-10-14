@@ -74,7 +74,7 @@ const pjax = new Pjax({
 You can define custom Pjax options using the following:
 
 | Option        | Type                      | Default              |
-| ------------- |:-------------------------:| --------------------:|
+| ------------- |:------------------------- |:-------------------- |
 | elements      | string                    | `a[href]`            |
 | selectors     | string[]                  | `.js-pjax`           |
 | switches      | StringKeyedObject<Switch> | `{}`                 |
@@ -85,8 +85,6 @@ You can define custom Pjax options using the following:
 | timeout       | number                    | `0`                  |
 | attrState     | string                    | `data-pjax-state`    |
 | titleSwitch   | boolean                   | `true`               |
-
----
 
 `elements` is the base element users should click on to trigger a page transition.
 
