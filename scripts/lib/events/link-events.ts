@@ -19,6 +19,8 @@ const isDefaultPrevented = (el:HTMLAnchorElement, e:Event)=>{
     if(e.defaultPrevented) isPrevented = true;
     else if(el.getAttribute('prevent-default') !== null) isPrevented = true;
     else if(el.classList.contains('no-transition')) isPrevented = true;
+    else if(el.getAttribute('download') !== null) isPrevented = true;
+    else if(el.getAttribute('target') !== null) isPrevented = true;
     
     return isPrevented;
 }
