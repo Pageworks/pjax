@@ -77,20 +77,16 @@ You can define custom Pjax options using the following:
 | ------------- |:------------------------- |:-------------------- |
 | elements      | string                    | `a[href]`            |
 | selectors     | string[]                  | `.js-pjax`           |
-| switches      | StringKeyedObject<Switch> | `{}`                 |
 | history       | boolean                   | `true`               |
 | scrollTo      | number                    | `0`                  |
 | cacheBust     | boolean                   | `false`              |
 | debug         | boolean                   | `false`              |
 | timeout       | number                    | `0`                  |
-| attrState     | string                    | `data-pjax-state`    |
 | titleSwitch   | boolean                   | `true`               |
 
 `elements` is the base element users should click on to trigger a page transition.
 
 `selectors` is an array of containers that Pjax should swap.
-
-`switches` is custom switch types.
 
 When `history` is true Pjax will use `window.history.pushState` to manipulate the browsers history.
 
@@ -101,7 +97,5 @@ When `history` is true Pjax will use `window.history.pushState` to manipulate th
 `debug` will tell Pjax to display all debug information.
 
 `timeout` is the about of time allowed before Pjax time's out an `XMLHttpRequest`
-
-`attrState` is the custom element attribute used to track transition types (ie: `prefetch` or `click` or `reload`)
 
 `titleSwitch` when true will swap out the documents title during page transitions.

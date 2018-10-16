@@ -4,6 +4,8 @@ import on from './on';
 // TypeScript Declaration Imports
 import globals from '../../globals';
 
+const attrState:string = 'data-pjax-state';
+
 /**
  * Check if the event has had it's default prevented OR
  * if the developer added a `prevent-default` attribute OR
@@ -63,17 +65,17 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
 
     const attrValue = checkForAbort(el, e);
     if(attrValue !== null){
-        el.setAttribute(pjax.options.attrState, attrValue);
+        el.setAttribute(attrState, attrValue);
         return;
     }
 
     e.preventDefault();
 
     // Don't do 'nothing' if the user is trying to reload the page by clicking on the same link twice
-    if(el.href === window.location.href.split('#')[0]) el.setAttribute(pjax.options.attrState, 'reload');
-    else el.setAttribute(pjax.options.attrState, 'load');
+    if(el.href === window.location.href.split('#')[0]) el.setAttribute(attrState, 'reload');
+    else el.setAttribute(attrState, 'load');
     
-    pjax.handleLoad(el.href, el.getAttribute(pjax.options.attrState));
+    pjax.handleLoad(el.href, el.getAttribute(attrState));
 }
 
 /**
@@ -102,13 +104,13 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
 
     const attrValue = checkForAbort(el, e);
     if(attrValue !== null){
-        el.setAttribute(pjax.options.attrState, attrValue);
+        el.setAttribute(attrState, attrValue);
         return;
     }
 
     // If the user is hovering over the link to their current page do nothing
     // There is no reason to prefetch the same page since the reload state has unique functionality
-    if(el.href !== window.location.href.split('#')[0]) el.setAttribute(pjax.options.attrState, 'prefetch');
+    if(el.href !== window.location.href.split('#')[0]) el.setAttribute(attrState, 'prefetch');
     else return;
 
     pjax.handlePrefetch(el.href, eventOptions);
@@ -126,7 +128,7 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
  * @param el HTMLAnchorElement
  */
 export default (el:HTMLAnchorElement, pjax:any)=>{
-    el.setAttribute(pjax.options.attrState, '');
+    el.setAttribute(attrState, '');
 
     // Use clicked a link
     on(el, 'click', (e:Event)=>{ handleClick(el, e, pjax); });
