@@ -2,6 +2,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var on_1 = require("./on");
+var attrState = 'data-pjax-state';
 var isDefaultPrevented = function (el, e) {
     var isPrevented = false;
     if (e.defaultPrevented)
@@ -9,6 +10,10 @@ var isDefaultPrevented = function (el, e) {
     else if (el.getAttribute('prevent-default') !== null)
         isPrevented = true;
     else if (el.classList.contains('no-transition'))
+        isPrevented = true;
+    else if (el.getAttribute('download') !== null)
+        isPrevented = true;
+    else if (el.getAttribute('target') !== null)
         isPrevented = true;
     return isPrevented;
 };
@@ -29,15 +34,15 @@ var handleClick = function (el, e, pjax) {
     };
     var attrValue = checkForAbort(el, e);
     if (attrValue !== null) {
-        el.setAttribute(pjax.options.attrState, attrValue);
+        el.setAttribute(attrState, attrValue);
         return;
     }
     e.preventDefault();
     if (el.href === window.location.href.split('#')[0])
-        el.setAttribute(pjax.options.attrState, 'reload');
+        el.setAttribute(attrState, 'reload');
     else
-        el.setAttribute(pjax.options.attrState, 'load');
-    pjax.handleLoad(el.href, el.getAttribute(pjax.options.attrState));
+        el.setAttribute(attrState, 'load');
+    pjax.handleLoad(el.href, el.getAttribute(attrState));
 };
 var handleHover = function (el, e, pjax) {
     if (isDefaultPrevented(el, e))
@@ -51,17 +56,17 @@ var handleHover = function (el, e, pjax) {
     };
     var attrValue = checkForAbort(el, e);
     if (attrValue !== null) {
-        el.setAttribute(pjax.options.attrState, attrValue);
+        el.setAttribute(attrState, attrValue);
         return;
     }
     if (el.href !== window.location.href.split('#')[0])
-        el.setAttribute(pjax.options.attrState, 'prefetch');
+        el.setAttribute(attrState, 'prefetch');
     else
         return;
     pjax.handlePrefetch(el.href, eventOptions);
 };
 exports.default = (function (el, pjax) {
-    el.setAttribute(pjax.options.attrState, '');
+    el.setAttribute(attrState, '');
     on_1.default(el, 'click', function (e) { handleClick(el, e, pjax); });
     on_1.default(el, 'mouseover', function (e) { handleHover(el, e, pjax); });
     on_1.default(el, 'mouseout', function (e) { handleHover(el, e, pjax); });
@@ -95,14 +100,12 @@ exports.default = (function (options) {
     if (options === void 0) { options = null; }
     var parsedOptions = (options !== null) ? options : {};
     parsedOptions.elements = (options !== null && options.elements !== undefined) ? options.elements : 'a[href]';
-    parsedOptions.selectors = (options !== null && options.selectors !== undefined) ? options.selectors : ['title', '.js-pjax'];
-    parsedOptions.switches = (options !== null && options.switches !== undefined) ? options.switches : {};
+    parsedOptions.selectors = (options !== null && options.selectors !== undefined) ? options.selectors : ['.js-pjax'];
     parsedOptions.history = (options !== null && options.history !== undefined) ? options.history : true;
     parsedOptions.scrollTo = (options !== null && options.scrollTo !== undefined) ? options.scrollTo : 0;
     parsedOptions.cacheBust = (options !== null && options.cacheBust !== undefined) ? options.cacheBust : false;
     parsedOptions.debug = (options !== null && options.debug !== undefined) ? options.debug : false;
     parsedOptions.timeout = (options !== null && options.timeout !== undefined) ? options.timeout : 0;
-    parsedOptions.attrState = (options !== null && options.attrState !== undefined) ? options.attrState : 'data-pjax-state';
     parsedOptions.titleSwitch = (options !== null && options.titleSwitch !== undefined) ? options.titleSwitch : true;
     return parsedOptions;
 });
