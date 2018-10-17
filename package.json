@@ -1,6 +1,6 @@
 {
     "name": "fuel-pjax",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Easily enable fast AJAX navigation on any website using pushState + XHR",
     "keywords": [
         "pjax",
@@ -20,7 +20,8 @@
     "files": [
         "scripts",
         "pjax.js",
-        "pjax.js.map"
+        "pjax.js.map",
+        "pjax.d.ts"
     ],
     "husky": {
         "hooks": {
