@@ -71,16 +71,17 @@ const pjax = new Pjax({
 
 You can define custom Pjax options using the following:
 
-| Option        | Type                      | Default              |
-| ------------- |:------------------------- |:-------------------- |
-| elements      | string                    | `a[href]`            |
-| selectors     | string[]                  | `.js-pjax`           |
-| history       | boolean                   | `true`               |
-| scrollTo      | number                    | `0`                  |
-| cacheBust     | boolean                   | `false`              |
-| debug         | boolean                   | `false`              |
-| timeout       | number                    | `0`                  |
-| titleSwitch   | boolean                   | `true`               |
+| Option              | Type                      | Default              |
+| ------------------- |:------------------------- |:-------------------- |
+| elements            | string                    | `a[href]`            |
+| selectors           | string[]                  | `.js-pjax`           |
+| history             | boolean                   | `true`               |
+| scrollTo            | number                    | `0`                  |
+| cacheBust           | boolean                   | `false`              |
+| debug               | boolean                   | `false`              |
+| timeout             | number                    | `0`                  |
+| titleSwitch         | boolean                   | `true`               |
+| customTransitions   | boolean                   | `false`              |
 
 `elements` is the base element users should click on to trigger a page transition.
 
@@ -97,3 +98,5 @@ When `history` is true Pjax will use `window.history.pushState` to manipulate th
 `timeout` is the about of time allowed before Pjax time's out an `XMLHttpRequest`
 
 `titleSwitch` when true will swap out the documents title during page transitions.
+
+`customTransitions` when true Pjax won't actually switch out the content until the developers application sends a custom `pjax:continue` event.

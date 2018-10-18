@@ -7,8 +7,8 @@ document.addEventListener('pjax:complete', ()=>{ console.log('Event: pjax:comple
 
 document.addEventListener('DOMContentLoaded', ()=>{
     let pjax = new Pjax({
-        debug: false,
-        selectors: ['.js-pjax-container', '.js-pjax-container-2']
+        debug: true,
+        selectors: ['.js-pjax-container']
     });
 
     console.log('New Pjax: ', pjax);

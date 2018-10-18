@@ -16,7 +16,8 @@ declare namespace Pjax{
         scrollTo?: number
         debug?: boolean
         timeout?: number
-        titleSwitch?: boolean
+        titleSwitch?: boolean,
+        customTransitions?: boolean
     }
 
     export interface CacheObject{
@@ -44,5 +45,10 @@ declare namespace Pjax{
     export interface SwitchOptions{
         oldEl: Element
         newEl: Element
+    }
+
+    export interface CachedSwitchOptions{
+        queue:  Array<SwitchOptions>
+        title?: string
     }
 }

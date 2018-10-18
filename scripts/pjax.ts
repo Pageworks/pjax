@@ -11,13 +11,14 @@ import globals from './globals';
 declare const module:any
 
 class Pjax{
-    state:      globals.StateObject
-    cache:      globals.CacheObject
-    options:    globals.IOptions
-    lastUUID:   string
-    request:    XMLHttpRequest
-    links:      NodeList
-    confirmed:  boolean
+    state:              globals.StateObject
+    cache:              globals.CacheObject
+    options:            globals.IOptions
+    lastUUID:           string
+    request:            XMLHttpRequest
+    links:              NodeList
+    confirmed:           boolean
+    cachedSwitch:       globals.CachedSwitchOptions
 
     constructor(options?:globals.IOptions){
         this.state = {
@@ -26,11 +27,12 @@ class Pjax{
             history: true,
             scrollPos: [0,0]
         };
-        this.cache      = null;
-        this.options    = parseOptions(options);
-        this.lastUUID   = uuid();
-        this.request    = null;
-        this.confirmed  = false;
+        this.cache              = null;
+        this.options            = parseOptions(options);
+        this.lastUUID           = uuid();
+        this.request            = null;
+        this.confirmed           = false;
+        this.cachedSwitch       = null;
 
         if(this.options.debug) console.log('Pjax Options:', this.options);
 
@@ -43,6 +45,9 @@ class Pjax{
      */
     init(){
         window.addEventListener('popstate', e => this.handlePopstate(e));
+
+        if(this.options.customTransitions) document.addEventListener('pjax:continue', e => this.handleContinue(e) );
+
         this.parseDOM(document.body); // Attach listeners to initial link elements
     }
 
@@ -212,10 +217,11 @@ class Pjax{
         this.handlePushState();
         this.handleScrollPosition();
 
-        this.cache      = null;
-        this.state      = {};
-        this.request    = null;
-        this.confirmed  = false;
+        this.cache              = null;
+        this.state              = {};
+        this.request            = null;
+        this.confirmed           = false;
+        this.cachedSwitch       = null;
 
         trigger(document, ['pjax:complete']);
     }
@@ -235,6 +241,23 @@ class Pjax{
         });
 
         this.finalize();
+    }
+
+    /**
+     * Called when the developer marked `this.options.customTransitions = true` and
+     * Pjax has recieved the `pjax:continue` event from the developers transition manager
+     * Calls `this.handleSwitches` if we have switches queued
+     * @param e Event
+     */
+    handleContinue(e:Event){
+        if(this.cachedSwitch !== null){
+            if(this.options.titleSwitch) document.title = this.cachedSwitch.title;
+            this.handleSwitches(this.cachedSwitch.queue);
+        }
+        else{
+            if(this.options.debug) console.log('Switch queue was empty');
+            trigger(document, ['pjax:error']);
+        }
     }
 
     /**
@@ -258,7 +281,7 @@ class Pjax{
             const newEls = toEl.querySelectorAll(selector);
             const oldEls = fromEl.querySelectorAll(selector);
 
-            if(this.options.debug) console.log('Pjax Switch: ', selector, newEls, oldEls);
+            if(this.options.debug) console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
 
             if(newEls.length !== oldEls.length){
                 if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
@@ -283,9 +306,17 @@ class Pjax{
             this.lastChance(this.request.responseURL);
             return;
         }
-
-        if(this.options.titleSwitch) document.title = toEl.title;
-        this.handleSwitches(switchQueue);
+        
+        if(!this.options.customTransitions){
+            if(this.options.titleSwitch) document.title = toEl.title;
+            this.handleSwitches(switchQueue);
+        }
+        else{
+            this.cachedSwitch = {
+                queue: switchQueue,
+                title: toEl.title
+            };
+        }
     }
 
     /**

@@ -18,6 +18,7 @@ var Pjax = (function () {
         this.lastUUID = uuid_1.default();
         this.request = null;
         this.confirmed = false;
+        this.cachedSwitch = null;
         if (this.options.debug)
             console.log('Pjax Options:', this.options);
         this.init();
@@ -25,6 +26,8 @@ var Pjax = (function () {
     Pjax.prototype.init = function () {
         var _this = this;
         window.addEventListener('popstate', function (e) { return _this.handlePopstate(e); });
+        if (this.options.customTransitions)
+            document.addEventListener('pjax:continue', function (e) { return _this.handleContinue(e); });
         this.parseDOM(document.body);
     };
     Pjax.prototype.handleReload = function () {
@@ -131,6 +134,7 @@ var Pjax = (function () {
         this.state = {};
         this.request = null;
         this.confirmed = false;
+        this.cachedSwitch = null;
         trigger_1.default(document, ['pjax:complete']);
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
@@ -141,6 +145,18 @@ var Pjax = (function () {
         });
         this.finalize();
     };
+    Pjax.prototype.handleContinue = function (e) {
+        if (this.cachedSwitch !== null) {
+            if (this.options.titleSwitch)
+                document.title = this.cachedSwitch.title;
+            this.handleSwitches(this.cachedSwitch.queue);
+        }
+        else {
+            if (this.options.debug)
+                console.log('Switch queue was empty');
+            trigger_1.default(document, ['pjax:error']);
+        }
+    };
     Pjax.prototype.switchSelectors = function (selectors, toEl, fromEl) {
         var _this = this;
         var switchQueue = [];
@@ -148,7 +164,7 @@ var Pjax = (function () {
             var newEls = toEl.querySelectorAll(selector);
             var oldEls = fromEl.querySelectorAll(selector);
             if (_this.options.debug)
-                console.log('Pjax Switch: ', selector, newEls, oldEls);
+                console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
             if (newEls.length !== oldEls.length) {
                 if (_this.options.debug)
                     console.log('DOM doesn\'t look the same on the new page');
@@ -170,9 +186,17 @@ var Pjax = (function () {
             this.lastChance(this.request.responseURL);
             return;
         }
-        if (this.options.titleSwitch)
-            document.title = toEl.title;
-        this.handleSwitches(switchQueue);
+        if (!this.options.customTransitions) {
+            if (this.options.titleSwitch)
+                document.title = toEl.title;
+            this.handleSwitches(switchQueue);
+        }
+        else {
+            this.cachedSwitch = {
+                queue: switchQueue,
+                title: toEl.title
+            };
+        }
     };
     Pjax.prototype.lastChance = function (uri) {
         if (this.options.debug)

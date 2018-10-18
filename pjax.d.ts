@@ -17,6 +17,7 @@ declare namespace Pjax{
         debug?: boolean
         timeout?: number
         titleSwitch?: boolean
+        customTransitions?: boolean
     }
 
     export interface CacheObject{
