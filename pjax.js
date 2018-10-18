@@ -331,9 +331,10 @@ var Pjax = (function () {
                 console.log('XHR Request Error: ', e);
         });
     };
-    Pjax.prototype.handleLoad = function (href, loadType) {
+    Pjax.prototype.handleLoad = function (href, loadType, el) {
         var _this = this;
-        trigger_1.default(document, ['pjax:send']);
+        if (el === void 0) { el = null; }
+        trigger_1.default(document, ['pjax:send'], el);
         if (this.cache !== null) {
             if (this.options.debug)
                 console.log('Loading Cached: ', href);

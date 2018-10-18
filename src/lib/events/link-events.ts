@@ -77,7 +77,7 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(el.href === window.location.href.split('#')[0]) el.setAttribute(attrState, 'reload');
     else el.setAttribute(attrState, 'load');
     
-    pjax.handleLoad(el.href, el.getAttribute(attrState));
+    pjax.handleLoad(el.href, el.getAttribute(attrState), el);
 }
 
 /**

@@ -10,7 +10,7 @@ import checkElement from './lib/util/check-element';
 import globals from './globals';
 declare const module:any
 
-class Pjax{
+export default class Pjax{
     state:              globals.StateObject
     cache:              globals.CacheObject
     options:            globals.IOptions
@@ -531,11 +531,11 @@ class Pjax{
 
     /**
      * Called when use clicks a link, even if we're already prefetching
-     * @param href
+     * @param el
      * @param loadType
      */
-    handleLoad(href:string, loadType:string){
-        trigger(document, ['pjax:send']);
+    handleLoad(href:string, loadType:string, el:HTMLAnchorElement = null){
+        trigger(document, ['pjax:send'], el);
         if(this.cache !== null){ // Content is cached
             if(this.options.debug) console.log('Loading Cached: ', href);
             this.loadCachedContent();
@@ -566,5 +566,3 @@ class Pjax{
         trigger(document, ['pjax:cancel']);
     }
 }
-export {Pjax as default};
-// export = Pjax;
