@@ -16,7 +16,7 @@
           ],
     },
     "files": [
-        "./scripts/pjax.ts"
+        "./src/pjax.ts"
     ],
     "exclude": [
         "node_modules"

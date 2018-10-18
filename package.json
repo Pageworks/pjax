@@ -1,6 +1,6 @@
 {
     "name": "fuel-pjax",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Easily enable fast AJAX navigation on any website using pushState + XHR",
     "keywords": [
         "pjax",
@@ -18,7 +18,7 @@
     "license": "MIT",
     "main": "pjax.js",
     "files": [
-        "scripts",
+        "lib",
         "pjax.js",
         "pjax.js.map",
         "pjax.d.ts"
@@ -41,12 +41,12 @@
         "typescript": "^3.0.1"
     },
     "scripts": {
-        "lint": "cross-env NODE_ENV=development tslint scripts/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
+        "lint": "cross-env NODE_ENV=development tslint src/**/*.ts -c .tslintrc.js -p tsconfig.json -t verbose",
         "precommit": "cross-env NODE_ENV=production tslint -c .tslintrc.js -p tsconfig.json -t verbose",
         "compile": "npm-run-all compile:*",
         "compile:typescript": "tsc",
         "compile:browserify": "browserify pjax.js --debug --standalone Pjax > ./example/index.js",
-        "prerelease": "npm run compile:typescript && browserify pjax.js --standalone Pjax > ./pjax-1.0.0.js",
+        "prerelease": "npm run compile:typescript && browserify pjax.js --standalone Pjax > ./_released/pjax-1.0.2.js",
         "example": "opn http://localhost:3000/example && serve -p 3000"
     }
 }
