@@ -262,6 +262,8 @@ class Pjax{
 
             if(newEls.length !== oldEls.length){
                 if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
+                this.lastChance(this.request.responseURL);
+                return;
             }
 
             newEls.forEach((newElement, i)=>{
@@ -453,41 +455,23 @@ class Pjax{
      * @param href
      */
     doRequest(href:string){
-        const requestOptions        = this.options.requestOptions || {};
-        const reqeustMethod         = (requestOptions.requestMethod || 'GET').toUpperCase();
-        const requestParams         = requestOptions.requestParams || null;
-        const timeout               = this.options.timeout || 0;
-        const request               = new XMLHttpRequest();
-        let requestPayload:string   = null;
-        let queryString;
-        let final                   = href;
+        const   reqeustMethod:string  = 'GET';
+        const   timeout               = this.options.timeout || 0;
+        const   request               = new XMLHttpRequest();
+        let     uri                   = href;
+        const   queryString           = href.split('?')[1];
 
-        if(requestParams && requestParams.length){
-            queryString = (requestParams.map((param)=>{ return `${param.name, '=', param.value}` })).join('&'); // Build query string
-
-            switch(reqeustMethod){
-                case 'GET':
-                    final = href.split('?')[0];
-                    final += '?';
-                    final += queryString;
-                    break;
-                case 'POST':
-                    requestPayload = queryString;
-                    break;
-            }
-        }
-
-        if(this.options.cacheBust) final += (queryString.length) ? (`&t=${Date.now()}`) : (`t=${Date.now()}`);
+        if(this.options.cacheBust) uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
 
         return new Promise((resolve, reject)=>{
-            request.open(reqeustMethod, final, true);
+            request.open(reqeustMethod, uri, true);
             request.timeout = timeout;
             request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             request.setRequestHeader('X-PJAX', 'true');
             request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
             request.onload = resolve;
             request.onerror = reject;
-            request.send(requestPayload);
+            request.send();
             this.request = request;
         });
     }
@@ -552,4 +536,4 @@ class Pjax{
     }
 }
 
-module.exports = Pjax;
+export = Pjax;

@@ -6,7 +6,7 @@ document.addEventListener('pjax:cancel', ()=>{ console.log('Event: pjax:cancel')
 
 document.addEventListener('DOMContentLoaded', ()=>{
     let pjax = new Pjax({
-        debug: false,
+        debug: true,
         selectors: ['.js-pjax-container', '.js-pjax-container-2']
     });
 

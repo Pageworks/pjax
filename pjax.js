@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var parse_options_1 = require("./lib/parse-options");
 var uuid_1 = require("./lib/uuid");
 var trigger_1 = require("./lib/events/trigger");
@@ -153,6 +152,8 @@ var Pjax = (function () {
             if (newEls.length !== oldEls.length) {
                 if (_this.options.debug)
                     console.log('DOM doesn\'t look the same on the new page');
+                _this.lastChance(_this.request.responseURL);
+                return;
             }
             newEls.forEach(function (newElement, i) {
                 var oldElement = oldEls[i];
@@ -273,38 +274,22 @@ var Pjax = (function () {
     };
     Pjax.prototype.doRequest = function (href) {
         var _this = this;
-        var requestOptions = this.options.requestOptions || {};
-        var reqeustMethod = (requestOptions.requestMethod || 'GET').toUpperCase();
-        var requestParams = requestOptions.requestParams || null;
+        var reqeustMethod = 'GET';
         var timeout = this.options.timeout || 0;
         var request = new XMLHttpRequest();
-        var requestPayload = null;
-        var queryString;
-        var final = href;
-        if (requestParams && requestParams.length) {
-            queryString = (requestParams.map(function (param) { return "" + (param.name, '=', param.value); })).join('&');
-            switch (reqeustMethod) {
-                case 'GET':
-                    final = href.split('?')[0];
-                    final += '?';
-                    final += queryString;
-                    break;
-                case 'POST':
-                    requestPayload = queryString;
-                    break;
-            }
-        }
+        var uri = href;
+        var queryString = href.split('?')[1];
         if (this.options.cacheBust)
-            final += (queryString.length) ? ("&t=" + Date.now()) : ("t=" + Date.now());
+            uri += (queryString === undefined) ? ("?cb=" + Date.now()) : ("&cb=" + Date.now());
         return new Promise(function (resolve, reject) {
-            request.open(reqeustMethod, final, true);
+            request.open(reqeustMethod, uri, true);
             request.timeout = timeout;
             request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             request.setRequestHeader('X-PJAX', 'true');
             request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(_this.options.selectors));
             request.onload = resolve;
             request.onerror = reject;
-            request.send(requestPayload);
+            request.send();
             _this.request = request;
         });
     };
