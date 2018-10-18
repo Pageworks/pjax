@@ -217,7 +217,7 @@ class Pjax{
         this.request    = null;
         this.confirmed  = false;
 
-        trigger(document, ['pjax:complete', 'pjax:success']);
+        trigger(document, ['pjax:complete']);
     }
 
     /**
@@ -504,6 +504,7 @@ class Pjax{
      * @param loadType
      */
     handleLoad(href:string, loadType:string){
+        trigger(document, ['pjax:send']);
         if(this.cache !== null){ // Content is cached
             if(this.options.debug) console.log('Loading Cached: ', href);
             this.loadCachedContent();
@@ -513,7 +514,6 @@ class Pjax{
             this.confirmed = true;
         }else{ // Not prefetching so do request
             if(this.options.debug) console.log('Loading: ', href);
-            trigger(document, ['pjax:send']);
             this.doRequest(href)
             .then((e:Event)=>{ this.handleResponse(e, loadType); })
             .catch((e:ErrorEvent)=>{

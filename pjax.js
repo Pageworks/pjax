@@ -131,7 +131,7 @@ var Pjax = (function () {
         this.state = {};
         this.request = null;
         this.confirmed = false;
-        trigger_1.default(document, ['pjax:complete', 'pjax:success']);
+        trigger_1.default(document, ['pjax:complete']);
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
         var _this = this;
@@ -308,6 +308,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.handleLoad = function (href, loadType) {
         var _this = this;
+        trigger_1.default(document, ['pjax:send']);
         if (this.cache !== null) {
             if (this.options.debug)
                 console.log('Loading Cached: ', href);
@@ -321,7 +322,6 @@ var Pjax = (function () {
         else {
             if (this.options.debug)
                 console.log('Loading: ', href);
-            trigger_1.default(document, ['pjax:send']);
             this.doRequest(href)
                 .then(function (e) { _this.handleResponse(e, loadType); })
                 .catch(function (e) {
