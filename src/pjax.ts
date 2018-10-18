@@ -566,5 +566,5 @@ class Pjax{
         trigger(document, ['pjax:cancel']);
     }
 }
-
-export = Pjax;
+export {Pjax as default};
+// export = Pjax;

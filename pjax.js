@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var parse_options_1 = require("./lib/parse-options");
 var uuid_1 = require("./lib/uuid");
 var trigger_1 = require("./lib/events/trigger");
@@ -362,5 +363,5 @@ var Pjax = (function () {
     };
     return Pjax;
 }());
-module.exports = Pjax;
+exports.default = Pjax;
 //# sourceMappingURL=pjax.js.map
