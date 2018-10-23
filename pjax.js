@@ -154,7 +154,7 @@ var Pjax = (function () {
         }
         else {
             if (this.options.debug)
-                console.log('Switch queue was empty');
+                console.log('Switch queue was empty. You might be sending `pjax:continue` too fast.');
             trigger_1.default(document, ['pjax:error']);
         }
     };

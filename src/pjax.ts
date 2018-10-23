@@ -255,7 +255,7 @@ export default class Pjax{
             this.handleSwitches(this.cachedSwitch.queue);
         }
         else{
-            if(this.options.debug) console.log('Switch queue was empty');
+            if(this.options.debug) console.log('Switch queue was empty. You might be sending `pjax:continue` too fast.');
             trigger(document, ['pjax:error']);
         }
     }
