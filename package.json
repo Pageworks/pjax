@@ -1,6 +1,6 @@
 {
     "name": "fuel-pjax",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Easily enable fast AJAX navigation on any website using pushState + XHR",
     "keywords": [
         "pjax",
@@ -47,7 +47,7 @@
         "compile": "npm-run-all compile:*",
         "compile:typescript": "tsc",
         "compile:browserify": "browserify pjax.js --debug --standalone Pjax > ./example/index.js",
-        "prerelease": "npm run compile:typescript && browserify pjax.js --standalone Pjax > ./_released/pjax-1.0.2.js",
+        "prerelease": "npm run compile:typescript && browserify pjax.js --standalone Pjax > ./_released/pjax-1.0.4.js",
         "example": "opn http://localhost:3000/example && serve -p 3000"
     }
 }

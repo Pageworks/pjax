@@ -33,11 +33,6 @@ declare namespace Pjax{
         scrollPos?: number[]
     }
 
-    export interface IRequestParams{
-        name: string,
-        value: string
-    }
-
     export interface EventOptions{
         triggerElement: Element
     }

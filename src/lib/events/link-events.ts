@@ -55,8 +55,9 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
  * Then we check if the event is a reload or is linked to the same page
  * Then we set the load state for the element
  * Finally we call loadUrl and pass in our desired href and the new eventOptions object
- * @param el HTMLAnchorElement
- * @param e Event
+ * @param {HTMLAnchorElement} el
+ * @param {Event} e
+ * @param {Pjax} pjax
  */
 const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
@@ -89,8 +90,9 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
  * Then we check if we should abort for any reason
  * Then we set our prefetch state
  * Finally we call prefetch and pass in our desired href and the new eventOptions object
- * @param el HTMLAnchorElement
- * @param e Event
+ * @param {HTMLAnchorElement} el
+ * @param {Event} e
+ * @param {Pjax} pjax
  */
 const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
@@ -127,7 +129,8 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
  * Then attach the `keyup` event
  * For the `keyup` event check for the enter key or the enter key's key code
  * Key code is depricated but is needed for older browser support (IE<=10)
- * @param el HTMLAnchorElement
+ * @param {HTMLAnchorElement} el
+ * @param {Pjax} pjax
  */
 export default (el:HTMLAnchorElement, pjax:any)=>{
     el.setAttribute(attrState, '');

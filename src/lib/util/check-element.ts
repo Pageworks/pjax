@@ -4,7 +4,8 @@
  * the element is an HTMLAnchorElement by checking it's tag name
  * If the element is an HTMLAnchorElement check if it alreay has a pjax state
  * If not set link event listeners
- * @param el Element
+ * @param {Element} el
+ * @param {Pjax} pjax
  */
 export default (el:Element, pjax:any)=>{
     switch(el.tagName.toLocaleLowerCase()){

@@ -16,7 +16,7 @@ declare namespace Pjax{
         scrollTo?: number
         debug?: boolean
         timeout?: number
-        titleSwitch?: boolean
+        titleSwitch?: boolean,
         customTransitions?: boolean
     }
 
@@ -33,11 +33,6 @@ declare namespace Pjax{
         scrollPos?: number[]
     }
 
-    export interface IRequestParams{
-        name: string,
-        value: string
-    }
-
     export interface EventOptions{
         triggerElement: Element
     }
@@ -45,5 +40,10 @@ declare namespace Pjax{
     export interface SwitchOptions{
         oldEl: Element
         newEl: Element
+    }
+
+    export interface CachedSwitchOptions{
+        queue:  Array<SwitchOptions>
+        title?: string
     }
 }
