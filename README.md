@@ -100,3 +100,25 @@ When `history` is true Pjax will use `window.history.pushState` to manipulate th
 `titleSwitch` when true will swap out the documents title during page transitions.
 
 `customTransitions` when true Pjax won't actually switch out the content until the developers application sends a custom `pjax:continue` event.
+
+### Pjax Events
+
+Pjax fires a handful of events on the `document` that you can listen for.
+
+```
+document.addEventListener('pjax:error', ()=>{ console.log('Event: pjax:error'); });
+document.addEventListener('pjax:send', (e)=>{ console.log('Event: pjax:send', e); });
+document.addEventListener('pjax:prefetch', ()=>{ console.log('Event: pjax:prefetch'); });
+document.addEventListener('pjax:cancel', ()=>{ console.log('Event: pjax:cancel'); });
+document.addEventListener('pjax:complete', ()=>{ console.log('Event: pjax:complete'); });
+```
+
+`pjax:send` is a `CustomEvent` with a details JSON object. When the `pjax:send` event is fired Pjax will pass along the events triggering element.
+
+```
+e.details{
+    el: element
+}
+```
+
+Pjax listens for a `pjax:continue` event on the `document`. This is only used when the `customTransitions` option is set to true. Pjax will **NOT** swap content until it recieves this event so use it with caution.
