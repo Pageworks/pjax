@@ -1,3 +1,7 @@
+# 1.0.5 - 2018-11-22
+
+- Fixes: Switches `mouseover` and `mouseout` to `mouseenter` and `mouseleave` to fix the `GET` request spam bug [#27](https://github.com/Pageworks/fuel-pjax/issues/27)
+
 # 1.0.4 - 2018-10-26
 
 - Adds: Pjax can listen for `pjax:continue` so developers can use custom page transitions

@@ -139,10 +139,10 @@ export default (el:HTMLAnchorElement, pjax:any)=>{
     on(el, 'click', (e:Event)=>{ handleClick(el, e, pjax); });
 
     // User is hovering over a link
-    on(el, 'mouseover', (e:Event)=>{ handleHover(el, e, pjax); });
+    on(el, 'mouseenter', (e:Event)=>{ handleHover(el, e, pjax); });
 
     // User unhovered the link
-    on(el, 'mouseout', (e:Event)=>{ handleHover(el, e, pjax); });
+    on(el, 'mouseleave', (e:Event)=>{ handleHover(el, e, pjax); });
 
     // User released a key press
     on(el, 'keyup', (e:KeyboardEvent)=>{
