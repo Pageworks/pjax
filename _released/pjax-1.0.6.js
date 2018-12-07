@@ -1,3 +1,164 @@
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Pjax = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var on_1 = require("./on");
+var attrState = 'data-pjax-state';
+var isDefaultPrevented = function (el, e) {
+    var isPrevented = false;
+    if (e.defaultPrevented)
+        isPrevented = true;
+    else if (el.getAttribute('prevent-default') !== null)
+        isPrevented = true;
+    else if (el.classList.contains('no-transition'))
+        isPrevented = true;
+    else if (el.getAttribute('download') !== null)
+        isPrevented = true;
+    else if (el.getAttribute('target') !== null)
+        isPrevented = true;
+    return isPrevented;
+};
+var checkForAbort = function (el, e) {
+    if (el.protocol !== window.location.protocol || el.host !== window.location.host)
+        return 'external';
+    if (el.hash && el.href.replace(el.hash, '') === window.location.href.replace(location.hash, ''))
+        return 'anchor';
+    if (el.href === window.location.href.split('#')[0] + ", '#'")
+        return 'anchor-empty';
+    return null;
+};
+var handleClick = function (el, e, pjax) {
+    if (isDefaultPrevented(el, e))
+        return;
+    var eventOptions = {
+        triggerElement: el
+    };
+    var attrValue = checkForAbort(el, e);
+    if (attrValue !== null) {
+        el.setAttribute(attrState, attrValue);
+        return;
+    }
+    e.preventDefault();
+    if (el.href === window.location.href.split('#')[0])
+        el.setAttribute(attrState, 'reload');
+    else
+        el.setAttribute(attrState, 'load');
+    pjax.handleLoad(el.href, el.getAttribute(attrState), el);
+};
+var handleHover = function (el, e, pjax) {
+    if (isDefaultPrevented(el, e))
+        return;
+    if (e.type === 'mouseout') {
+        pjax.clearPrefetch();
+        return;
+    }
+    var eventOptions = {
+        triggerElement: el
+    };
+    var attrValue = checkForAbort(el, e);
+    if (attrValue !== null) {
+        el.setAttribute(attrState, attrValue);
+        return;
+    }
+    if (el.href !== window.location.href.split('#')[0])
+        el.setAttribute(attrState, 'prefetch');
+    else
+        return;
+    pjax.handlePrefetch(el.href, eventOptions);
+};
+exports.default = (function (el, pjax) {
+    el.setAttribute(attrState, '');
+    on_1.default(el, 'click', function (e) { handleClick(el, e, pjax); });
+    on_1.default(el, 'mouseenter', function (e) { handleHover(el, e, pjax); });
+    on_1.default(el, 'mouseleave', function (e) { handleHover(el, e, pjax); });
+    on_1.default(el, 'keyup', function (e) {
+        if (e.key === 'enter' || e.keyCode === 13)
+            handleClick(el, e, pjax);
+    });
+});
+
+},{"./on":2}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function (el, event, listener) {
+    el.addEventListener(event, listener);
+});
+
+},{}],3:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function (el, events, target) {
+    if (target === void 0) { target = null; }
+    events.forEach(function (e) {
+        if (target !== null) {
+            var customEvent = new CustomEvent(e, {
+                detail: {
+                    el: target
+                }
+            });
+            el.dispatchEvent(customEvent);
+        }
+        else {
+            var event_1 = new Event(e);
+            el.dispatchEvent(event_1);
+        }
+    });
+});
+
+},{}],4:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function (options) {
+    if (options === void 0) { options = null; }
+    var parsedOptions = (options !== null) ? options : {};
+    parsedOptions.elements = (options !== null && options.elements !== undefined) ? options.elements : 'a[href]';
+    parsedOptions.selectors = (options !== null && options.selectors !== undefined) ? options.selectors : ['.js-pjax'];
+    parsedOptions.history = (options !== null && options.history !== undefined) ? options.history : true;
+    parsedOptions.scrollTo = (options !== null && options.scrollTo !== undefined) ? options.scrollTo : 0;
+    parsedOptions.cacheBust = (options !== null && options.cacheBust !== undefined) ? options.cacheBust : false;
+    parsedOptions.debug = (options !== null && options.debug !== undefined) ? options.debug : false;
+    parsedOptions.timeout = (options !== null && options.timeout !== undefined) ? options.timeout : 0;
+    parsedOptions.titleSwitch = (options !== null && options.titleSwitch !== undefined) ? options.titleSwitch : true;
+    parsedOptions.customTransitions = (options !== null && options.customTransitions !== undefined) ? options.customTransitions : false;
+    return parsedOptions;
+});
+
+},{}],5:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function (el, pjax) {
+    switch (el.tagName.toLocaleLowerCase()) {
+        case 'a':
+            if (!el.hasAttribute(pjax.options.attrState))
+                pjax.setLinkListeners(el);
+            break;
+        default:
+            throw 'Pjax can only be applied on <a> elements';
+    }
+});
+
+},{}],6:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function (doc, selectors, element) {
+    selectors.map(function (selector) {
+        var selectorEls = doc.querySelectorAll(selector);
+        selectorEls.forEach(function (el) {
+            if (el.contains(element)) {
+                return true;
+            }
+        });
+    });
+    return false;
+});
+
+},{}],7:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = (function () {
+    return Date.now().toString();
+});
+
+},{}],8:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_options_1 = require("./lib/parse-options");
@@ -366,4 +527,6 @@ var Pjax = (function () {
     return Pjax;
 }());
 exports.default = Pjax;
-//# sourceMappingURL=pjax.js.map
+
+},{"./lib/events/link-events":1,"./lib/events/trigger":3,"./lib/parse-options":4,"./lib/util/check-element":5,"./lib/util/contains":6,"./lib/uuid":7}]},{},[8])(8)
+});

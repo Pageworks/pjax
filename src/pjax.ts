@@ -23,7 +23,7 @@ export default class Pjax{
         this.state = {
             url: window.location.href,
             title: document.title,
-            history: true,
+            history: false,
             scrollPos: [0,0]
         };
         this.cache              = null;
@@ -48,6 +48,7 @@ export default class Pjax{
         if(this.options.customTransitions) document.addEventListener('pjax:continue', e => this.handleContinue(e) );
 
         this.parseDOM(document.body); // Attach listeners to initial link elements
+        this.handlePushState();
     }
 
     handleReload(){
