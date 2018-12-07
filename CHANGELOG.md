@@ -1,3 +1,8 @@
+# 1.0.6 - 2018-12-07
+
+- Fixes: Sets `this.state.history` to `false` by default
+- Fixes: Calls `this.handlePushState()` on `init` to replace the default browser history with our custom history [#28](https://github.com/Pageworks/fuel-pjax/issues/28)
+
 # 1.0.5 - 2018-11-22
 
 - Fixes: Switches `mouseover` and `mouseout` to `mouseenter` and `mouseleave` to fix the `GET` request spam bug [#27](https://github.com/Pageworks/fuel-pjax/issues/27)
