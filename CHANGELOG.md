@@ -1,3 +1,7 @@
+# 1.0.7 - 2018-12-24
+
+- Fixes: Fixes `this.cache.status` bug for non-200 response status
+
 # 1.0.6 - 2018-12-07
 
 - Fixes: Sets `this.state.history` to `false` by default

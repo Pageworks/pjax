@@ -326,7 +326,9 @@ export default class Pjax{
      * @param {string} uri
      */
     lastChance(uri:string){
-        if(this.options.debug) console.log('Cached content has a response of ', this.cache.status,' but we require a success response, fallback loading uri ', uri);
+        if(this.options.debug){
+            console.log('Cached content has a non-200 response but we require a success response, fallback loading uri ', uri);
+        }
         window.location.href = uri;
     }
 
