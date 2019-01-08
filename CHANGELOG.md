@@ -1,12 +1,9 @@
 # 1.0.8 - 2019-01-08
 
-### Adds
-
-- Adds: Support for IE 11 [#30](https://github.com/Pageworks/fuel-pjax/issues/30)
-
 ### Fixes
 
 - Fixes: Fixes a bug where links with an empty `target` attribute would prevent default. Now we only prevent default if `target="_blank"` [#29](https://github.com/Pageworks/fuel-pjax/issues/29)
+- Fixes: Fixes bug where pjax would break on IE 11 [#30](https://github.com/Pageworks/fuel-pjax/issues/30)
 
 # 1.0.7 - 2018-12-24
 
