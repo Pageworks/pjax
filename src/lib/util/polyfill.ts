@@ -2,29 +2,30 @@
 export default ()=>{
     if (!Array.from) {
         Array.from = (function () {
-          let toStr = Object.prototype.toString;
-          let isCallable = function (fn:any) {
+          const toStr = Object.prototype.toString;
+          const isCallable = function (fn:any) {
             return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
           };
-          let toInteger = function (value:any) {
-            let number = Number(value);
-            if (isNaN(number)) { return 0; }
-            if (number === 0 || !isFinite(number)) { return number; }
-            return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+          const toInteger = function (value:any) {
+            const num = Number(value);
+            if (isNaN(num)) { return 0; }
+            if (num === 0 || !isFinite(num)) { return num; }
+            return (num > 0 ? 1 : -1) * Math.floor(Math.abs(num));
           };
-          let maxSafeInteger = Math.pow(2, 53) - 1;
-          let toLength = function (value:any) {
-            let len = toInteger(value);
+          const maxSafeInteger = Math.pow(2, 53) - 1;
+          const toLength = function (value:any) {
+            const len = toInteger(value);
             return Math.min(Math.max(len, 0), maxSafeInteger);
           };
       
           // The length property of the from method is 1.
-          return function from(arrayLike:any) {
+          return function from(arrayLike:any){
             // 1. Let C be the this value.
-            let C = this;
+            // tslint:disable-next-line
+            const C = this;
       
             // 2. Let items be ToObject(arrayLike).
-            let items = Object(arrayLike);
+            const items = Object(arrayLike);
       
             // 3. ReturnIfAbrupt(items).
             if (arrayLike == null) {
@@ -32,7 +33,7 @@ export default ()=>{
             }
       
             // 4. If mapfn is undefined, then let mapping be false.
-            let mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+            const mapFn = arguments.length > 1 ? arguments[1] : void undefined;
             let T;
             if (typeof mapFn !== 'undefined') {
               // 5. else
@@ -49,13 +50,13 @@ export default ()=>{
       
             // 10. Let lenValue be Get(items, "length").
             // 11. Let len be ToLength(lenValue).
-            let len = toLength(items.length);
+            const len = toLength(items.length);
       
             // 13. If IsConstructor(C) is true, then
             // 13. a. Let A be the result of calling the [[Construct]] internal method 
             // of C with an argument list containing the single item len.
             // 14. a. Else, Let A be ArrayCreate(len).
-            let A = isCallable(C) ? Object(new C(len)) : new Array(len);
+            const A = isCallable(C) ? Object(new C(len)) : [len];
       
             // 16. Let k be 0.
             let k = 0;
