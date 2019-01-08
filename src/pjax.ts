@@ -5,7 +5,6 @@ import trigger from './lib/events/trigger';
 import contains from './lib/util/contains';
 import linkEvent from './lib/events/link-events';
 import checkElement from './lib/util/check-element';
-import polyfill from './lib/util/polyfill';
 
 // TypeScript Declarations
 import globals from './globals';
@@ -20,6 +19,12 @@ export default class Pjax{
     cachedSwitch:       globals.CachedSwitchOptions;
 
     constructor(options?:globals.IOptions){
+        // If IE 11 is detected abort pjax
+        if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
+            console.log('IE 11 detected - fuel-pjax aborted!');
+            return;
+        }
+        
         this.state              = {
                                     url: window.location.href,
                                     title: document.title,
@@ -43,11 +48,6 @@ export default class Pjax{
      * Calls parseDOM to init all base link event listeners
      */
     init(){
-        // If IE 11 add polyfill
-        if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
-            polyfill();
-        }
-
         window.addEventListener('popstate', e => this.handlePopstate(e));
 
         if(this.options.customTransitions) document.addEventListener('pjax:continue', e => this.handleContinue(e) );
