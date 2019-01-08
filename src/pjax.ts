@@ -5,27 +5,27 @@ import trigger from './lib/events/trigger';
 import contains from './lib/util/contains';
 import linkEvent from './lib/events/link-events';
 import checkElement from './lib/util/check-element';
+import polyfill from './lib/util/polyfill';
 
 // TypeScript Declarations
 import globals from './globals';
 
 export default class Pjax{
-    state:              globals.StateObject
-    cache:              globals.CacheObject
-    options:            globals.IOptions
-    lastUUID:           string
-    request:            XMLHttpRequest
-    links:              NodeList
-    confirmed:           boolean
-    cachedSwitch:       globals.CachedSwitchOptions
+    state:              globals.StateObject;
+    cache:              globals.CacheObject;
+    options:            globals.IOptions;
+    lastUUID:           string;
+    request:            XMLHttpRequest;
+    confirmed:           boolean;
+    cachedSwitch:       globals.CachedSwitchOptions;
 
     constructor(options?:globals.IOptions){
-        this.state = {
-            url: window.location.href,
-            title: document.title,
-            history: false,
-            scrollPos: [0,0]
-        };
+        this.state              = {
+                                    url: window.location.href,
+                                    title: document.title,
+                                    history: false,
+                                    scrollPos: [0,0]
+                                };
         this.cache              = null;
         this.options            = parseOptions(options);
         this.lastUUID           = uuid();
@@ -43,6 +43,11 @@ export default class Pjax{
      * Calls parseDOM to init all base link event listeners
      */
     init(){
+        // If IE 11 add polyfill
+        if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
+            polyfill();
+        }
+
         window.addEventListener('popstate', e => this.handlePopstate(e));
 
         if(this.options.customTransitions) document.addEventListener('pjax:continue', e => this.handleContinue(e) );
@@ -70,8 +75,8 @@ export default class Pjax{
      * @param {Element} el
      * @returns `NodeList`
      */
-    getElements(el:Element){
-        return el.querySelectorAll(this.options.elements);
+    private getElements(el:Element): Array<Element>{
+        return Array.from(el.querySelectorAll(this.options.elements));
     }
 
     /**
@@ -278,8 +283,8 @@ export default class Pjax{
         const switchQueue:Array<globals.SwitchOptions> = [];
 
         selectors.forEach((selector)=>{
-            const newEls = toEl.querySelectorAll(selector);
-            const oldEls = fromEl.querySelectorAll(selector);
+            const newEls = Array.from(toEl.querySelectorAll(selector));
+            const oldEls = Array.from(fromEl.querySelectorAll(selector));
 
             if(this.options.debug) console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
 

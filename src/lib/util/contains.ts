@@ -10,7 +10,7 @@
  */
 export default (doc: Document, selectors: string[], element: Element)=>{
     selectors.map((selector)=>{
-        const selectorEls = doc.querySelectorAll(selector);
+        const selectorEls = Array.from(doc.querySelectorAll(selector));
         selectorEls.forEach((el)=>{
             if(el.contains(element)){
                 return true;

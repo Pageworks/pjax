@@ -6,6 +6,7 @@ var trigger_1 = require("./lib/events/trigger");
 var contains_1 = require("./lib/util/contains");
 var link_events_1 = require("./lib/events/link-events");
 var check_element_1 = require("./lib/util/check-element");
+var polyfill_1 = require("./lib/util/polyfill");
 var Pjax = (function () {
     function Pjax(options) {
         this.state = {
@@ -26,6 +27,9 @@ var Pjax = (function () {
     }
     Pjax.prototype.init = function () {
         var _this = this;
+        if ('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style) {
+            polyfill_1.default();
+        }
         window.addEventListener('popstate', function (e) { return _this.handlePopstate(e); });
         if (this.options.customTransitions)
             document.addEventListener('pjax:continue', function (e) { return _this.handleContinue(e); });
@@ -39,7 +43,7 @@ var Pjax = (function () {
         link_events_1.default(el, this);
     };
     Pjax.prototype.getElements = function (el) {
-        return el.querySelectorAll(this.options.elements);
+        return Array.from(el.querySelectorAll(this.options.elements));
     };
     Pjax.prototype.parseDOM = function (el) {
         var _this = this;
@@ -163,8 +167,8 @@ var Pjax = (function () {
         var _this = this;
         var switchQueue = [];
         selectors.forEach(function (selector) {
-            var newEls = toEl.querySelectorAll(selector);
-            var oldEls = fromEl.querySelectorAll(selector);
+            var newEls = Array.from(toEl.querySelectorAll(selector));
+            var oldEls = Array.from(fromEl.querySelectorAll(selector));
             if (_this.options.debug)
                 console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
             if (newEls.length !== oldEls.length) {
