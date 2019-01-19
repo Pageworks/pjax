@@ -358,7 +358,7 @@ export default class Pjax{
      */
     lastChance(uri:string){
         if(this.options.debug){
-            console.log(`Something went wrong, failsafe loading ${uri}`);
+            console.log(`Something went wrong, native loading ${uri}`);
         }
         window.location.href = uri;
     }
