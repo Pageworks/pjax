@@ -168,6 +168,7 @@ var Pjax = (function () {
     Pjax.prototype.switchSelectors = function (selectors, toEl, fromEl) {
         var _this = this;
         var switchQueue = [];
+        var contiansScripts = false;
         selectors.forEach(function (selector) {
             var newEls = Array.from(toEl.querySelectorAll(selector));
             var oldEls = Array.from(fromEl.querySelectorAll(selector));
@@ -175,13 +176,18 @@ var Pjax = (function () {
                 console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
             }
             if (newEls.length !== oldEls.length) {
-                if (_this.options.debug)
+                if (_this.options.debug) {
                     console.log('DOM doesn\'t look the same on the new page');
+                }
                 _this.lastChance(_this.request.responseURL);
                 return;
             }
             newEls.forEach(function (newElement, i) {
                 var oldElement = oldEls[i];
+                var scripts = newElement.querySelectorAll('script');
+                if (scripts.length > 0) {
+                    contiansScripts = true;
+                }
                 var elSwitch = {
                     newEl: newElement,
                     oldEl: oldElement
@@ -190,14 +196,23 @@ var Pjax = (function () {
             });
         });
         if (switchQueue.length === 0) {
-            if (this.options.debug)
+            if (this.options.debug) {
                 console.log('Couldn\'t find anything to switch');
+            }
+            this.lastChance(this.request.responseURL);
+            return;
+        }
+        if (contiansScripts) {
+            if (this.options.debug) {
+                console.log('New page contains script elements.');
+            }
             this.lastChance(this.request.responseURL);
             return;
         }
         if (!this.options.customTransitions) {
-            if (this.options.titleSwitch)
+            if (this.options.titleSwitch) {
                 document.title = toEl.title;
+            }
             this.handleSwitches(switchQueue);
         }
         else {
@@ -348,21 +363,20 @@ var Pjax = (function () {
         var _this = this;
         if (el === void 0) { el = null; }
         if (this.confirmed) {
-            if (this.options.debug) {
-                console.log('User already confirmed page load.');
-            }
             return;
         }
         trigger_1.default(document, ['pjax:send'], el);
         this.confirmed = true;
         if (this.cache !== null) {
-            if (this.options.debug)
+            if (this.options.debug) {
                 console.log('Loading Cached: ', href);
+            }
             this.loadCachedContent();
         }
         else if (this.request !== null) {
-            if (this.options.debug)
+            if (this.options.debug) {
                 console.log('Loading Prefetch: ', href);
+            }
             this.confirmed = true;
         }
         else {
@@ -371,16 +385,14 @@ var Pjax = (function () {
             this.doRequest(href)
                 .then(function (e) { _this.handleResponse(e, loadType); })
                 .catch(function (e) {
-                if (_this.options.debug)
+                if (_this.options.debug) {
                     console.log('XHR Request Error: ', e);
+                }
             });
         }
     };
     Pjax.prototype.clearPrefetch = function () {
         if (!this.confirmed) {
-            if (this.options.debug) {
-                console.log('Clearing prefetch');
-            }
             this.cache = null;
             this.abortRequest();
             trigger_1.default(document, ['pjax:cancel']);
