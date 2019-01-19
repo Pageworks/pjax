@@ -131,6 +131,18 @@ var Pjax = (function () {
     Pjax.prototype.finalize = function () {
         if (this.options.debug)
             console.log('Finishing Pjax');
+        var pjaxWrappers = document.body.querySelectorAll("" + this.options.selectors);
+        var newPageContainsScripts = false;
+        pjaxWrappers.forEach(function (el) {
+            var scripts = el.querySelectorAll('script');
+            if (scripts.length > 0) {
+                newPageContainsScripts = true;
+            }
+        });
+        if (newPageContainsScripts) {
+            this.lastChance(this.request.responseURL);
+            return;
+        }
         this.state.url = this.request.responseURL;
         this.state.title = document.title;
         this.state.scrollPos = [0, window.scrollY];

@@ -17,7 +17,7 @@ const attrState:string = 'data-pjax-state';
 const isDefaultPrevented = (el:HTMLAnchorElement, e:Event)=>{
     let isPrevented = false;
     if(e.defaultPrevented) isPrevented = true;
-    else if(el.getAttribute('prevent-default') !== null) isPrevented = true;
+    else if(el.getAttribute('prevent-pjax') !== null) isPrevented = true;
     else if(el.classList.contains('no-transition')) isPrevented = true;
     else if(el.getAttribute('download') !== null) isPrevented = true;
     else if(el.getAttribute('target') === '_blank') isPrevented = true;
