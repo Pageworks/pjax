@@ -142,17 +142,6 @@ var Pjax = (function () {
         this.confirmed = false;
         this.cachedSwitch = null;
         trigger_1.default(document, ['pjax:complete']);
-        var pjaxWrappers = document.body.querySelectorAll("" + this.options.selectors);
-        var newPageContainsScripts = false;
-        pjaxWrappers.forEach(function (el) {
-            var scripts = el.querySelectorAll('script');
-            if (scripts.length > 0) {
-                newPageContainsScripts = true;
-            }
-        });
-        if (newPageContainsScripts) {
-            window.location.reload();
-        }
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
         var _this = this;

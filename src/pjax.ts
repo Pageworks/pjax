@@ -229,20 +229,6 @@ export default class Pjax{
         this.cachedSwitch       = null;
 
         trigger(document, ['pjax:complete']);
-
-        const pjaxWrappers = document.body.querySelectorAll(`${this.options.selectors}`);
-        let newPageContainsScripts = false;
-
-        pjaxWrappers.forEach((el)=>{
-            const scripts = el.querySelectorAll('script');
-            if(scripts.length > 0){
-                newPageContainsScripts = true;
-            }
-        });
-
-        if(newPageContainsScripts){
-            window.location.reload();
-        }
     }
 
     /**
