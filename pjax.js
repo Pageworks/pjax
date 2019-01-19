@@ -348,6 +348,9 @@ var Pjax = (function () {
         var _this = this;
         if (el === void 0) { el = null; }
         if (this.confirmed) {
+            if (this.options.debug) {
+                console.log('User already confirmed page load.');
+            }
             return;
         }
         trigger_1.default(document, ['pjax:send'], el);
@@ -375,6 +378,9 @@ var Pjax = (function () {
     };
     Pjax.prototype.clearPrefetch = function () {
         if (!this.confirmed) {
+            if (this.options.debug) {
+                console.log('Clearing prefetch');
+            }
             this.cache = null;
             this.abortRequest();
             trigger_1.default(document, ['pjax:cancel']);

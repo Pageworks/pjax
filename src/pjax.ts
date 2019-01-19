@@ -556,6 +556,9 @@ export default class Pjax{
      */
     handleLoad(href:string, loadType:string, el:HTMLAnchorElement = null){
         if(this.confirmed){
+            if(this.options.debug){
+                console.log('User already confirmed page load.');
+            }
             return;
         }
         trigger(document, ['pjax:send'], el);
@@ -585,6 +588,9 @@ export default class Pjax{
      */
     clearPrefetch(){
         if(!this.confirmed){
+            if(this.options.debug){
+                console.log('Clearing prefetch');
+            }
             this.cache = null;
             this.abortRequest();
             trigger(document, ['pjax:cancel']);
