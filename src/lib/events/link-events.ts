@@ -60,7 +60,9 @@ const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
  * @param {Pjax} pjax
  */
 const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
-    if(isDefaultPrevented(el, e)) return;
+    if(isDefaultPrevented(el, e)){
+        return;
+    }
 
     const eventOptions:globals.EventOptions = {
         triggerElement: el
@@ -75,8 +77,11 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     e.preventDefault();
 
     // Don't do 'nothing' if the user is trying to reload the page by clicking on the same link twice
-    if(el.href === window.location.href.split('#')[0]) el.setAttribute(attrState, 'reload');
-    else el.setAttribute(attrState, 'load');
+    if(el.href === window.location.href.split('#')[0]){
+        el.setAttribute(attrState, 'reload');
+    }else{
+        el.setAttribute(attrState, 'load');
+    }
     
     pjax.handleLoad(el.href, el.getAttribute(attrState), el);
 }

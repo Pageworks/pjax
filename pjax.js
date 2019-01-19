@@ -60,12 +60,13 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.abortRequest = function () {
-        if (this.request === null)
+        if (this.request === null) {
             return;
+        }
         if (this.request.readyState !== 4) {
             this.request.abort();
-            this.request = null;
         }
+        this.request = null;
     };
     Pjax.prototype.loadUrl = function (href, loadType) {
         this.abortRequest();
@@ -129,8 +130,9 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.finalize = function () {
-        if (this.options.debug)
+        if (this.options.debug) {
             console.log('Finishing Pjax');
+        }
         this.state.url = this.request.responseURL;
         this.state.title = document.title;
         this.state.scrollPos = [0, window.scrollY];
@@ -169,8 +171,9 @@ var Pjax = (function () {
         selectors.forEach(function (selector) {
             var newEls = Array.from(toEl.querySelectorAll(selector));
             var oldEls = Array.from(fromEl.querySelectorAll(selector));
-            if (_this.options.debug)
+            if (_this.options.debug) {
                 console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
+            }
             if (newEls.length !== oldEls.length) {
                 if (_this.options.debug)
                     console.log('DOM doesn\'t look the same on the new page');
@@ -206,7 +209,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.lastChance = function (uri) {
         if (this.options.debug) {
-            console.log('Cached content has a non-200 response but we require a success response, fallback loading uri ', uri);
+            console.log("Something went wrong, failsafe loading " + uri);
         }
         window.location.href = uri;
     };
@@ -326,8 +329,12 @@ var Pjax = (function () {
     };
     Pjax.prototype.handlePrefetch = function (href) {
         var _this = this;
-        if (this.options.debug)
+        if (this.confirmed) {
+            return;
+        }
+        if (this.options.debug) {
             console.log('Prefetching: ', href);
+        }
         this.abortRequest();
         trigger_1.default(document, ['pjax:prefetch']);
         this.doRequest(href)
@@ -340,7 +347,11 @@ var Pjax = (function () {
     Pjax.prototype.handleLoad = function (href, loadType, el) {
         var _this = this;
         if (el === void 0) { el = null; }
+        if (this.confirmed) {
+            return;
+        }
         trigger_1.default(document, ['pjax:send'], el);
+        this.confirmed = true;
         if (this.cache !== null) {
             if (this.options.debug)
                 console.log('Loading Cached: ', href);
@@ -363,10 +374,11 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.clearPrefetch = function () {
-        this.cache = null;
-        this.confirmed = false;
-        this.abortRequest();
-        trigger_1.default(document, ['pjax:cancel']);
+        if (!this.confirmed) {
+            this.cache = null;
+            this.abortRequest();
+            trigger_1.default(document, ['pjax:cancel']);
+        }
     };
     return Pjax;
 }());

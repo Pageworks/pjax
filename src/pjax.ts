@@ -15,7 +15,7 @@ export default class Pjax{
     options:            globals.IOptions;
     lastUUID:           string;
     request:            XMLHttpRequest;
-    confirmed:           boolean;
+    confirmed:          boolean;
     cachedSwitch:       globals.CachedSwitchOptions;
 
     constructor(options?:globals.IOptions){
@@ -35,7 +35,7 @@ export default class Pjax{
         this.options            = parseOptions(options);
         this.lastUUID           = uuid();
         this.request            = null;
-        this.confirmed           = false;
+        this.confirmed          = false;
         this.cachedSwitch       = null;
 
         if(this.options.debug) console.log('Pjax Options:', this.options);
@@ -114,11 +114,13 @@ export default class Pjax{
      * If the request is not ready abort and make null.
      */
     abortRequest(){
-        if(this.request === null) return;
+        if(this.request === null){
+            return;
+        }
         if(this.request.readyState !== 4){
             this.request.abort();
-            this.request = null;
         }
+        this.request = null;
     }
 
     /**
@@ -213,7 +215,9 @@ export default class Pjax{
      * Triggers a complete and success call when finished
      */
     finalize(){
-        if(this.options.debug) console.log('Finishing Pjax');
+        if(this.options.debug){
+            console.log('Finishing Pjax');
+        }
 
         this.state.url = this.request.responseURL;
         this.state.title = document.title;
@@ -225,7 +229,7 @@ export default class Pjax{
         this.cache              = null;
         this.state              = {};
         this.request            = null;
-        this.confirmed           = false;
+        this.confirmed          = false;
         this.cachedSwitch       = null;
 
         trigger(document, ['pjax:complete']);
@@ -286,7 +290,9 @@ export default class Pjax{
             const newEls = Array.from(toEl.querySelectorAll(selector));
             const oldEls = Array.from(fromEl.querySelectorAll(selector));
 
-            if(this.options.debug) console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
+            if(this.options.debug){
+                console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
+            }
 
             if(newEls.length !== oldEls.length){
                 if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
@@ -332,7 +338,7 @@ export default class Pjax{
      */
     lastChance(uri:string){
         if(this.options.debug){
-            console.log('Cached content has a non-200 response but we require a success response, fallback loading uri ', uri);
+            console.log(`Something went wrong, failsafe loading ${uri}`);
         }
         window.location.href = uri;
     }
@@ -523,7 +529,13 @@ export default class Pjax{
      * @param {string} href
      */
     handlePrefetch(href:string){
-        if(this.options.debug) console.log('Prefetching: ', href);
+        // Don't prefetch links after the user has confirmed a page switch
+        if(this.confirmed){
+            return;
+        }
+        if(this.options.debug){
+            console.log('Prefetching: ', href);
+        }
 
         this.abortRequest();
 
@@ -543,7 +555,11 @@ export default class Pjax{
      * @param {HTMLAnchorElement} el
      */
     handleLoad(href:string, loadType:string, el:HTMLAnchorElement = null){
+        if(this.confirmed){
+            return;
+        }
         trigger(document, ['pjax:send'], el);
+        this.confirmed = true;
         if(this.cache !== null){ // Content is cached
             if(this.options.debug) console.log('Loading Cached: ', href);
             this.loadCachedContent();
@@ -568,9 +584,10 @@ export default class Pjax{
      * Clear the cache
      */
     clearPrefetch(){
-        this.cache      = null;
-        this.confirmed  = false;
-        this.abortRequest();
-        trigger(document, ['pjax:cancel']);
+        if(!this.confirmed){
+            this.cache = null;
+            this.abortRequest();
+            trigger(document, ['pjax:cancel']);
+        }
     }
 }
