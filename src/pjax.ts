@@ -15,7 +15,7 @@ export default class Pjax{
     options:            globals.IOptions;
     lastUUID:           string;
     request:            XMLHttpRequest;
-    confirmed:           boolean;
+    confirmed:          boolean;
     cachedSwitch:       globals.CachedSwitchOptions;
 
     constructor(options?:globals.IOptions){
@@ -35,7 +35,7 @@ export default class Pjax{
         this.options            = parseOptions(options);
         this.lastUUID           = uuid();
         this.request            = null;
-        this.confirmed           = false;
+        this.confirmed          = false;
         this.cachedSwitch       = null;
 
         if(this.options.debug) console.log('Pjax Options:', this.options);
@@ -114,11 +114,13 @@ export default class Pjax{
      * If the request is not ready abort and make null.
      */
     abortRequest(){
-        if(this.request === null) return;
+        if(this.request === null){
+            return;
+        }
         if(this.request.readyState !== 4){
             this.request.abort();
-            this.request = null;
         }
+        this.request = null;
     }
 
     /**
@@ -213,7 +215,9 @@ export default class Pjax{
      * Triggers a complete and success call when finished
      */
     finalize(){
-        if(this.options.debug) console.log('Finishing Pjax');
+        if(this.options.debug){
+            console.log('Finishing Pjax');
+        }
 
         this.state.url = this.request.responseURL;
         this.state.title = document.title;
@@ -225,7 +229,7 @@ export default class Pjax{
         this.cache              = null;
         this.state              = {};
         this.request            = null;
-        this.confirmed           = false;
+        this.confirmed          = false;
         this.cachedSwitch       = null;
 
         trigger(document, ['pjax:complete']);
@@ -281,21 +285,31 @@ export default class Pjax{
      */
     switchSelectors(selectors: string[], toEl: Document, fromEl: Document){
         const switchQueue:Array<globals.SwitchOptions> = [];
+        let contiansScripts = false;
 
         selectors.forEach((selector)=>{
             const newEls = Array.from(toEl.querySelectorAll(selector));
             const oldEls = Array.from(fromEl.querySelectorAll(selector));
 
-            if(this.options.debug) console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
+            if(this.options.debug){
+                console.log('Pjax Switch Selector: ', selector, newEls, oldEls);
+            }
 
             if(newEls.length !== oldEls.length){
-                if(this.options.debug) console.log('DOM doesn\'t look the same on the new page');
+                if(this.options.debug){
+                    console.log('DOM doesn\'t look the same on the new page');
+                }
                 this.lastChance(this.request.responseURL);
                 return;
             }
 
             newEls.forEach((newElement, i)=>{
                 const oldElement = oldEls[i];
+
+                const scripts = newElement.querySelectorAll('script');
+                if(scripts.length > 0){
+                    contiansScripts = true;
+                }
 
                 const elSwitch = {
                     newEl: newElement,
@@ -307,13 +321,25 @@ export default class Pjax{
         });
         
         if(switchQueue.length === 0){
-            if(this.options.debug) console.log('Couldn\'t find anything to switch');
+            if(this.options.debug){
+                console.log('Couldn\'t find anything to switch');
+            }
+            this.lastChance(this.request.responseURL);
+            return;
+        }
+
+        if(contiansScripts){
+            if(this.options.debug){
+                console.log('New page contains script elements.');
+            }
             this.lastChance(this.request.responseURL);
             return;
         }
         
         if(!this.options.customTransitions){
-            if(this.options.titleSwitch) document.title = toEl.title;
+            if(this.options.titleSwitch){
+                document.title = toEl.title;
+            }
             this.handleSwitches(switchQueue);
         }
         else{
@@ -332,7 +358,7 @@ export default class Pjax{
      */
     lastChance(uri:string){
         if(this.options.debug){
-            console.log('Cached content has a non-200 response but we require a success response, fallback loading uri ', uri);
+            console.log(`Something went wrong, native loading ${uri}`);
         }
         window.location.href = uri;
     }
@@ -523,7 +549,13 @@ export default class Pjax{
      * @param {string} href
      */
     handlePrefetch(href:string){
-        if(this.options.debug) console.log('Prefetching: ', href);
+        // Don't prefetch links after the user has confirmed a page switch
+        if(this.confirmed){
+            return;
+        }
+        if(this.options.debug){
+            console.log('Prefetching: ', href);
+        }
 
         this.abortRequest();
 
@@ -543,20 +575,30 @@ export default class Pjax{
      * @param {HTMLAnchorElement} el
      */
     handleLoad(href:string, loadType:string, el:HTMLAnchorElement = null){
+        if(this.confirmed){
+            return;
+        }
         trigger(document, ['pjax:send'], el);
+        this.confirmed = true;
         if(this.cache !== null){ // Content is cached
-            if(this.options.debug) console.log('Loading Cached: ', href);
+            if(this.options.debug){
+                console.log('Loading Cached: ', href);
+            }
             this.loadCachedContent();
         }
         else if(this.request !== null){ // We're still waiting for content
-            if(this.options.debug) console.log('Loading Prefetch: ', href);
+            if(this.options.debug){
+                console.log('Loading Prefetch: ', href);
+            }
             this.confirmed = true;
         }else{ // Not prefetching so do request
             if(this.options.debug) console.log('Loading: ', href);
             this.doRequest(href)
             .then((e:Event)=>{ this.handleResponse(e, loadType); })
             .catch((e:ErrorEvent)=>{
-                if(this.options.debug) console.log('XHR Request Error: ', e);
+                if(this.options.debug){
+                    console.log('XHR Request Error: ', e);
+                }
             });
         }
     }
@@ -568,9 +610,10 @@ export default class Pjax{
      * Clear the cache
      */
     clearPrefetch(){
-        this.cache      = null;
-        this.confirmed  = false;
-        this.abortRequest();
-        trigger(document, ['pjax:cancel']);
+        if(!this.confirmed){
+            this.cache = null;
+            this.abortRequest();
+            trigger(document, ['pjax:cancel']);
+        }
     }
 }

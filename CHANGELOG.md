@@ -1,3 +1,14 @@
+# 1.0.9 - 2019-01-19
+
+### Adds
+
+- Adds: When switching containers if a new page contians `<script>` elements the pjax will load the page using the native browser functionality [#31](https://github.com/Pageworks/fuel-pjax/issues/31)
+
+### Fixes
+
+- Fixes: Switched `prefent-defualt` attribute to `prevent-pjax` in order to make make preventing pjax less confusing
+- Fixes: Switches the event for calling `clearPrefetched` to the correct mouse event type
+
 # 1.0.8 - 2019-01-08
 
 ### Fixes
