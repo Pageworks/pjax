@@ -102,7 +102,7 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
 const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
     if(isDefaultPrevented(el, e)) return;
 
-    if(e.type === 'mouseout'){
+    if(e.type === 'mouseleave'){
         pjax.clearPrefetch();
         return;
     }
