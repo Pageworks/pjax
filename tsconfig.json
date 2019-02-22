@@ -4,21 +4,22 @@
         "sourceMap": true,
         "noImplicitAny": true,
         "removeComments": true,
-        "module": "commonjs",
         "target": "es5",
+        "module": "commonjs",
         "lib": [
-                "es6",
-                "es5",
-                "es2015",
-                "dom",
-                "scripthost",
-                "es7"
-          ],
+            "dom",
+            "scripthost",
+            "es2015",
+            "es2016",
+            "es2017",
+            "es2018",
+            "esnext"
+        ]
     },
-    "files": [
-        "./src/pjax.ts"
+    "include": [
+        "./src/**/*"
     ],
-    "exclude": [
-        "node_modules"
+    "exclude":[
+        "./node_modules"
     ]
-  }
+}

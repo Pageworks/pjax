@@ -1,9 +1,6 @@
 // Function Imports
 import on from './on';
 
-// TypeScript Declaration Imports
-import globals from '../../globals';
-
 const attrState:string = 'data-pjax-state';
 
 /**
@@ -64,7 +61,7 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
         return;
     }
 
-    const eventOptions:globals.EventOptions = {
+    const eventOptions:EventOptions = {
         triggerElement: el
     };
 
@@ -107,7 +104,7 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
         return;
     }
 
-    const eventOptions:globals.EventOptions = {
+    const eventOptions:EventOptions = {
         triggerElement: el
     };
 

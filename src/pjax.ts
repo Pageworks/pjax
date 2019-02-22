@@ -6,19 +6,16 @@ import contains from './lib/util/contains';
 import linkEvent from './lib/events/link-events';
 import checkElement from './lib/util/check-element';
 
-// TypeScript Declarations
-import globals from './globals';
-
 export default class Pjax{
-    state:              globals.StateObject;
-    cache:              globals.CacheObject;
-    options:            globals.IOptions;
+    state:              StateObject;
+    cache:              CacheObject;
+    options:            IOptions;
     lastUUID:           string;
     request:            XMLHttpRequest;
     confirmed:          boolean;
-    cachedSwitch:       globals.CachedSwitchOptions;
+    cachedSwitch:       CachedSwitchOptions;
 
-    constructor(options?:globals.IOptions){
+    constructor(options?:IOptions){
         // If IE 11 is detected abort pjax
         if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
             console.log('IE 11 detected - fuel-pjax aborted!');
@@ -241,9 +238,9 @@ export default class Pjax{
      * Once the innerHTML is switched we call `this.parseDOM` and pass in the 'old' element (now containing the new elements)
      * so we can set any event listeners to elements within our new html
      * Calls `this.finalize` when finished
-     * @param {Array<globals.SwitchOptions>} switchQueue
+     * @param {Array<SwitchOptions>} switchQueue
      */
-    handleSwitches(switchQueue:Array<globals.SwitchOptions>){
+    handleSwitches(switchQueue:Array<SwitchOptions>){
         switchQueue.map((switchObj)=>{
             switchObj.oldEl.innerHTML = switchObj.newEl.innerHTML;
             this.parseDOM(switchObj.oldEl);
@@ -284,7 +281,7 @@ export default class Pjax{
      * @param {Document} fromEl
      */
     switchSelectors(selectors: string[], toEl: Document, fromEl: Document){
-        const switchQueue:Array<globals.SwitchOptions> = [];
+        const switchQueue:Array<SwitchOptions> = [];
         let contiansScripts = false;
 
         selectors.forEach((selector)=>{

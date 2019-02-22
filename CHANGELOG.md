@@ -1,3 +1,13 @@
+# Unreleased Changed - 2019-02-22
+
+### Fixes
+
+- Fixes: updates `global.d.ts`
+
+### Removed
+
+- Removes: browserify
+
 # 1.0.9 - 2019-01-19
 
 ### Adds
