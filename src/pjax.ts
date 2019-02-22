@@ -35,7 +35,9 @@ export default class Pjax{
         this.confirmed          = false;
         this.cachedSwitch       = null;
 
-        if(this.options.debug) console.log('Pjax Options:', this.options);
+        if(this.options.debug){
+            console.log('Pjax Options:', this.options);
+        }
 
         this.init();
     }
@@ -47,7 +49,9 @@ export default class Pjax{
     init(){
         window.addEventListener('popstate', e => this.handlePopstate(e));
 
-        if(this.options.customTransitions) document.addEventListener('pjax:continue', e => this.handleContinue(e) );
+        if(this.options.customTransitions){
+            document.addEventListener('pjax:continue', e => this.handleContinue(e) );
+        }
 
         this.parseDOM(document.body); // Attach listeners to initial link elements
         this.handlePushState();
@@ -100,7 +104,9 @@ export default class Pjax{
      */
     handlePopstate(e: PopStateEvent){
         if(e.state){
-            if(this.options.debug) console.log('Hijacking Popstate Event');
+            if(this.options.debug){
+                console.log('Hijacking Popstate Event');
+            }
             this.loadUrl(e.state.url, 'popstate');
         }
     }
@@ -147,7 +153,9 @@ export default class Pjax{
     handlePushState(){
         if(this.state !== {}){
             if(this.state.history){
-                if(this.options.debug) console.log('Pushing History State: ', this.state);
+                if(this.options.debug){
+                    console.log('Pushing History State: ', this.state);
+                }
                 this.lastUUID = uuid();
                 window.history.pushState({
                     url: this.state.url,
@@ -156,7 +164,9 @@ export default class Pjax{
                     scrollPos: [0,0]
                 }, this.state.title, this.state.url);
             }else{
-                if(this.options.debug) console.log('Replacing History State: ', this.state);
+                if(this.options.debug){
+                    console.log('Replacing History State: ', this.state);
+                }
                 this.lastUUID = uuid();
                 window.history.replaceState({
                     url: this.state.url,
@@ -257,11 +267,15 @@ export default class Pjax{
      */
     handleContinue(e:Event){
         if(this.cachedSwitch !== null){
-            if(this.options.titleSwitch) document.title = this.cachedSwitch.title;
+            if(this.options.titleSwitch){
+                document.title = this.cachedSwitch.title;
+            }
             this.handleSwitches(this.cachedSwitch.queue);
         }
         else{
-            if(this.options.debug) console.log('Switch queue was empty. You might be sending `pjax:continue` too fast.');
+            if(this.options.debug){
+                console.log('Switch queue was empty. You might be sending `pjax:continue` too fast.');
+            }
             trigger(document, ['pjax:error']);
         }
     }
@@ -366,7 +380,9 @@ export default class Pjax{
      */
     statusCheck(){
         for(let status = 200; status <= 206; status++){
-            if(this.cache.status === status) return true;
+            if(this.cache.status === status){
+                return true;
+            }
         }
         return false;
     }
@@ -386,7 +402,9 @@ export default class Pjax{
         if(document.activeElement && contains(document, this.options.selectors, document.activeElement)){
             try{
                 (document.activeElement as HTMLElement).blur();
-            }catch(e){ console.log(e) }
+            }catch(e){ 
+                console.log(e);
+            }
         }
 
         this.switchSelectors(this.options.selectors, this.cache.html, document);
@@ -405,7 +423,9 @@ export default class Pjax{
         const htmlRegex = /\s?[a-z:]+(?=(?:\'|\")[^\'\">]+(?:\'|\"))*/gi;
         const matches = responseText.match(htmlRegex);
         
-        if(matches && matches.length) return tempEl;
+        if(matches && matches.length){
+            return tempEl;
+        }
 
         return null;
     }
@@ -435,7 +455,9 @@ export default class Pjax{
             url: uri
         }
 
-        if(this.options.debug) console.log('Cached Content: ', this.cache);
+        if(this.options.debug){
+            console.log('Cached Content: ', this.cache);
+        }
     }
 
     /**
@@ -461,7 +483,9 @@ export default class Pjax{
         if(document.activeElement && contains(document, this.options.selectors, document.activeElement)){
             try{
                 (document.activeElement as HTMLElement).blur();
-            }catch(e){ console.log(e) }
+            }catch(e){ 
+                console.log(e);
+            }
         }
 
         this.switchSelectors(this.options.selectors, tempEl, document);
@@ -477,7 +501,9 @@ export default class Pjax{
      * @param {string} loadType
      */
     handleResponse(e:Event, loadType:string){
-        if(this.options.debug) console.log('XML Http Request Status: ', this.request.status);
+        if(this.options.debug){
+            console.log('XML Http Request Status: ', this.request.status);
+        }
 
         const request = this.request;
         
@@ -489,8 +515,11 @@ export default class Pjax{
         switch(loadType){
             case 'prefetch':
                 this.state.history = true;
-                if(this.confirmed) this.loadContent(request.responseText);
-                else this.cacheContent(request.responseText, request.status, request.responseURL);
+                if(this.confirmed){
+                    this.loadContent(request.responseText);
+                }else{
+                    this.cacheContent(request.responseText, request.status, request.responseURL);
+                }
                 break;
             case 'popstate':
                 this.state.history = false;
@@ -523,7 +552,9 @@ export default class Pjax{
         let     uri                   = href;
         const   queryString           = href.split('?')[1];
 
-        if(this.options.cacheBust) uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
+        if(this.options.cacheBust){
+            uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
+        }
 
         return new Promise((resolve, reject)=>{
             request.open(reqeustMethod, uri, true);
@@ -559,9 +590,12 @@ export default class Pjax{
         trigger(document, ['pjax:prefetch']);
 
         this.doRequest(href)
-        .then((e:Event)=>{ this.handleResponse(e, 'prefetch'); })
-        .catch((e:ErrorEvent)=>{
-            if(this.options.debug) console.log('XHR Request Error: ', e);
+        .then((e:Event)=>{ 
+            this.handleResponse(e, 'prefetch');
+        }).catch((e:ErrorEvent)=>{
+            if(this.options.debug){
+                console.log('XHR Request Error: ', e);
+            }
         });
     }
 
@@ -591,8 +625,9 @@ export default class Pjax{
         }else{ // Not prefetching so do request
             if(this.options.debug) console.log('Loading: ', href);
             this.doRequest(href)
-            .then((e:Event)=>{ this.handleResponse(e, loadType); })
-            .catch((e:ErrorEvent)=>{
+            .then((e:Event)=>{
+                this.handleResponse(e, loadType);
+            }).catch((e:ErrorEvent)=>{
                 if(this.options.debug){
                     console.log('XHR Request Error: ', e);
                 }

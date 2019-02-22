@@ -13,11 +13,21 @@ const attrState:string = 'data-pjax-state';
  */
 const isDefaultPrevented = (el:HTMLAnchorElement, e:Event)=>{
     let isPrevented = false;
-    if(e.defaultPrevented) isPrevented = true;
-    else if(el.getAttribute('prevent-pjax') !== null) isPrevented = true;
-    else if(el.classList.contains('no-transition')) isPrevented = true;
-    else if(el.getAttribute('download') !== null) isPrevented = true;
-    else if(el.getAttribute('target') === '_blank') isPrevented = true;
+    if(e.defaultPrevented){
+        isPrevented = true;
+    }
+    else if(el.getAttribute('prevent-pjax') !== null){
+        isPrevented = true;
+    }
+    else if(el.classList.contains('no-transition')){
+        isPrevented = true;
+    }
+    else if(el.getAttribute('download') !== null){
+        isPrevented = true;
+    }
+    else if(el.getAttribute('target') === '_blank'){
+        isPrevented = true;
+    }
     
     return isPrevented;
 }
@@ -30,13 +40,19 @@ const isDefaultPrevented = (el:HTMLAnchorElement, e:Event)=>{
  */
 const checkForAbort = (el:HTMLAnchorElement, e:Event)=>{
     // Ignore external links
-    if(el.protocol !== window.location.protocol || el.host !== window.location.host) return 'external';
+    if(el.protocol !== window.location.protocol || el.host !== window.location.host){
+        return 'external';
+    }
 
     // Ignore anchors on the same page
-    if(el.hash && el.href.replace(el.hash, '') === window.location.href.replace(location.hash, '')) return 'anchor';
+    if(el.hash && el.href.replace(el.hash, '') === window.location.href.replace(location.hash, '')){
+        return 'anchor';
+    }
 
     // Ignore empty anchor
-    if(el.href === `${window.location.href.split('#')[0]}, '#'`) return 'anchor-empty';
+    if(el.href === `${window.location.href.split('#')[0]}, '#'`){
+        return 'anchor-empty';
+    }
 
     return null;
 }
@@ -97,7 +113,9 @@ const handleClick = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
  * @param {Pjax} pjax
  */
 const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
-    if(isDefaultPrevented(el, e)) return;
+    if(isDefaultPrevented(el, e)){
+        return;
+    }
 
     if(e.type === 'mouseleave'){
         pjax.clearPrefetch();
@@ -116,8 +134,11 @@ const handleHover = (el:HTMLAnchorElement, e:Event, pjax:any)=>{
 
     // If the user is hovering over the link to their current page do nothing
     // There is no reason to prefetch the same page since the reload state has unique functionality
-    if(el.href !== window.location.href.split('#')[0]) el.setAttribute(attrState, 'prefetch');
-    else return;
+    if(el.href !== window.location.href.split('#')[0]){
+        el.setAttribute(attrState, 'prefetch');
+    }else{
+        return;
+    }
 
     pjax.handlePrefetch(el.href, eventOptions);
 }

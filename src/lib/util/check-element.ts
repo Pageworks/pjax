@@ -10,7 +10,9 @@
 export default (el:Element, pjax:any)=>{
     switch(el.tagName.toLocaleLowerCase()){
         case 'a':
-            if(!el.hasAttribute(pjax.options.attrState)) pjax.setLinkListeners(el);
+            if(!el.hasAttribute(pjax.options.attrState)){
+                pjax.setLinkListeners(el);
+            }
             break;
         default:
             throw 'Pjax can only be applied on <a> elements';
