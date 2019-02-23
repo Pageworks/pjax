@@ -207,6 +207,7 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.loadContent = function (responseText) {
+        this.stateManager.doReplace(window.location.href, document.title);
         var tempDocument = this.parseContent(responseText);
         if (tempDocument instanceof HTMLDocument) {
             clear_active_1.default();

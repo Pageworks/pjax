@@ -379,6 +379,8 @@ export default class Pjax{
      */
     private loadContent(responseText:string): void{
         
+        this.stateManager.doReplace(window.location.href, document.title);
+
         // Create a temp HTML document
         const tempDocument = this.parseContent(responseText);
 
