@@ -4,32 +4,37 @@ import uuid from './lib/uuid';
 import trigger from './lib/events/trigger';
 import parseDOM from './lib/parse-dom';
 import scrollWindow from './lib/util/scroll';
+import clearActive from './lib/util/clear-active';
+
+// State Manager
+import StateManager from 'fuel-state-manager';
+
+import PJAX from './global';
 
 export default class Pjax{
-    state:          StateObject;
-    cache:          CacheObject;
-    options:        Options;
-    lastUUID:       number;
-    request:        XMLHttpRequest;
-    confirmed:      boolean;
-    cachedSwitch:   CachedSwitchOptions;
-    scrollPos:      ScrollPosition;
 
-    constructor(options?:Options){
+    private stateManager:   StateManager;
+    public options:         PJAX.IOptions;
+    private cache:          PJAX.ICacheObject;
+    private request:        XMLHttpRequest;
+    private confirmed:      boolean;
+    private cachedSwitch:   PJAX.ICachedSwitchOptions;
+    private scrollTo:       PJAX.IScrollPosition;
+
+    constructor(options?:PJAX.IOptions){
         // If IE 11 is detected abort pjax
         if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
             console.log('IE 11 detected - fuel-pjax aborted!');
             return;
         }
         
-        this.state          = {};
         this.cache          = null;
         this.options        = parseOptions(options);
-        this.lastUUID       = uuid();
+        this.stateManager   = new StateManager(this.options.debug, true);
         this.request        = null;
         this.confirmed      = false;
         this.cachedSwitch   = null;
-        this.scrollPos      = this.options.scrollTo;
+        this.scrollTo       = {x:0, y:0};
 
         if(this.options.debug){
             console.log('Pjax Options:', this.options);
@@ -39,7 +44,7 @@ export default class Pjax{
     }
 
     init(){
-        // window.addEventListener('popstate', e => this.handlePopstate(e));
+        window.addEventListener('popstate', this.handlePopstate);
 
         if(this.options.customTransitions){
             document.addEventListener('pjax:continue', this.handleContinue );
@@ -47,23 +52,36 @@ export default class Pjax{
 
         // Attach listeners to initial link elements
         parseDOM(document.body, this);
-        // this.handlePushState();
-        // url: window.location.href,
-        // title: document.title,
-        // history: false,
-        // scrollPos: [0,0],
-        // timestamp: uuid()
     }
 
-    // handlePopstate(e: PopStateEvent){
-    //     if(e.state){
-    //         if(this.options.debug){
-    //             console.log('Hijacking Popstate Event');
-    //         }
-    //         this.loadUrl(e.state.url, 'popstate');
-    //     }
-    // }
+    /**
+     * Fired when the `popstate` event is fired on the `window`.
+     */
+    private handlePopstate:EventListener = (e:PopStateEvent)=>{
+        
+        // Check if the state object is available
+        if(e.state){
+            if(this.options.debug){
+                console.log('Hijacking Popstate Event');
+            }
+            this.scrollTo = e.state.scrollPos;
+            this.loadUrl(e.state.url, 'popstate');
+        }
+    }
 
+    /**
+     * 
+     * @param href - URI from the popstates state object
+     * @param loadType - the load type that should be perfomred (eg: popstate)
+     */
+    private loadUrl(href:string, loadType:string):void{
+        
+        // Abort any current request
+        this.abortRequest();
+
+        // Handle the page load request
+        this.handleLoad(href, loadType);
+    }
 
     /**
      * Called when the current request needs to be aborted.
@@ -84,42 +102,6 @@ export default class Pjax{
         this.request = null;
     }
 
-    // loadUrl(href:string, loadType:string){
-    //     this.abortRequest();
-
-    //     if(this.cache === null){
-    //         this.handleLoad(href, loadType);
-    //     }else{
-    //         this.loadCachedContent();
-    //     }
-    // }
-
-    handlePushState(){
-        if(this.state.history){
-            if(this.options.debug){
-                console.log('Pushing History State: ', this.state);
-            }
-            this.lastUUID = uuid();
-            window.history.pushState({
-                url: this.state.url,
-                title: this.state.title,
-                uuid: this.lastUUID,
-                scrollPos: [0,0]
-            }, this.state.title, this.state.url);
-        }else{
-            if(this.options.debug){
-                console.log('Replacing History State: ', this.state);
-            }
-            this.lastUUID = uuid();
-            window.history.replaceState({
-                url: this.state.url,
-                title: this.state.title,
-                uuid: this.lastUUID,
-                scrollPos: [0,0]
-            }, document.title);
-        }
-    }
-
     /**
      * Called when Pjax needs to finish the page transition.
      * This method is responsible for cleaning up all the status trackers.
@@ -129,23 +111,22 @@ export default class Pjax{
             console.log('Finishing Pjax');
         }
 
-        // Update our state objects values
-        this.state.url = this.request.responseURL;
-        this.state.title = document.title;
-        this.state.scrollPos = [window.scrollX, window.scrollY];
-
         // Handle the pushState
-        // this.handlePushState();
+        if(this.options.history){
+            this.stateManager.doPush(this.request.responseURL, document.title);
+        }else{
+            this.stateManager.doReplace(this.request.responseURL, document.title);
+        }
 
         // Update the windows scroll position
-        scrollWindow(this.scrollPos);
+        scrollWindow(this.scrollTo);
 
         // Reset status trackers
         this.cache              = null;
-        this.state              = {};
         this.request            = null;
         this.confirmed          = false;
         this.cachedSwitch       = null;
+        this.scrollTo           = {x:0,y:0};
 
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
@@ -155,7 +136,7 @@ export default class Pjax{
      * Loops through the `SwitchObject` array and swapps the `innerHTML` from the containers.
      * @param switchQueue -`SwitchObject` array
      */
-    private handleSwitches(switchQueue:Array<SwitchObject>): void{
+    private handleSwitches(switchQueue:Array<PJAX.ISwitchObject>): void{
         
         // Loop through all the queued switch objects
         for(let i = 0; i < switchQueue.length; i++){
@@ -204,7 +185,7 @@ export default class Pjax{
     private switchSelectors(selectors:string[], tempDocument:HTMLDocument, currentDocument:HTMLDocument): void{
         
         // Build a queue of containers to swap
-        const switchQueue:Array<SwitchObject> = [];
+        const switchQueue:Array<PJAX.ISwitchObject> = [];
 
         // Track if the new page contains additional `HTMLScriptElement`
         let contiansScripts = false;
@@ -247,7 +228,7 @@ export default class Pjax{
                 const currentContainer = currentContainers[k];
 
                 // Build the switch object
-                const switchObject:SwitchObject = {
+                const switchObject:PJAX.ISwitchObject = {
                     new: newContainer,
                     current: currentContainer
                 };
@@ -315,22 +296,6 @@ export default class Pjax{
     }
 
     /**
-     * Attempts to `blur()` the active element.
-     */
-    private clearActiveElement(): void{
-        
-        // Check if the document has an active element
-        if(document.activeElement){
-            try{
-                // Attempt to blur the element
-                (document.activeElement as HTMLElement).blur();
-            }catch(e){ 
-                console.log(e);
-            }
-        }
-    }
-
-    /**
      * Called when Pjax needs to load the temporary `HTMLDocument` that's currently cached.
      */
     private loadCachedContent(): void{
@@ -342,7 +307,7 @@ export default class Pjax{
         }
 
         // Clear the active element
-        this.clearActiveElement();        
+        clearActive();
 
         // Build the selector swapping queue
         this.switchSelectors(this.options.selectors, this.cache.document, document);
@@ -416,7 +381,7 @@ export default class Pjax{
         if(tempDocument instanceof HTMLDocument){
             
             // Clear the active element
-            this.clearActiveElement();
+            clearActive();
     
             // Swap the current page with the new page
             this.switchSelectors(this.options.selectors, tempDocument, document);
@@ -455,7 +420,6 @@ export default class Pjax{
         // Handle the response based on the load type provided
         switch(loadType){
             case 'prefetch':
-                this.state.history = true;
                 if(this.confirmed){
                     this.loadContent(this.request.responseText);
                 }else{
@@ -463,15 +427,12 @@ export default class Pjax{
                 }
                 break;
             case 'popstate':
-                this.state.history = false;
                 this.loadContent(this.request.responseText);
                 break;
             case 'reload':
-                this.state.history = false;
                 this.loadContent(this.request.responseText);
                 break;
             default:
-                this.state.history = true;
                 this.loadContent(this.request.responseText);
                 break;
         }

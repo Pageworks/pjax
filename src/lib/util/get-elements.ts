@@ -5,7 +5,7 @@ import Pjax from "../../pjax";
  * @param el - `document.body` element
  * @returns `Array<Element>`
  */
-export default (el:Element)=>{
-    const elements = Array.from(el.querySelectorAll(this.options.elements));
+export default (el:Element, pjax:Pjax)=>{
+    const elements = Array.from(el.querySelectorAll(pjax.options.elements));
     return elements;
 }

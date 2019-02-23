@@ -9,7 +9,7 @@ import Pjax from '../pjax';
  */
 export default (el:Element, pjax:Pjax)=>{
     // Get an array of elements that need event listeners.
-    const elements:Array<Element> = getElements(el);
+    const elements:Array<Element> = getElements(el, pjax);
 
     if(pjax.options.debug && elements.length === 0){
         console.log('No elements could be found! Check your Pjax options object.');

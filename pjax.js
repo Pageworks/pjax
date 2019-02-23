@@ -1,13 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var parse_options_1 = require("./lib/parse-options");
-var uuid_1 = require("./lib/uuid");
 var trigger_1 = require("./lib/events/trigger");
 var parse_dom_1 = require("./lib/parse-dom");
 var scroll_1 = require("./lib/util/scroll");
+var clear_active_1 = require("./lib/util/clear-active");
+var fuel_state_manager_1 = require("fuel-state-manager");
 var Pjax = (function () {
     function Pjax(options) {
         var _this = this;
+        this.handlePopstate = function (e) {
+            if (e.state) {
+                if (_this.options.debug) {
+                    console.log('Hijacking Popstate Event');
+                }
+                _this.scrollTo = e.state.scrollPos;
+                _this.loadUrl(e.state.url, 'popstate');
+            }
+        };
         this.handleContinue = function (e) {
             if (_this.cachedSwitch !== null) {
                 if (_this.options.titleSwitch) {
@@ -26,24 +36,28 @@ var Pjax = (function () {
             console.log('IE 11 detected - fuel-pjax aborted!');
             return;
         }
-        this.state = {};
         this.cache = null;
         this.options = parse_options_1.default(options);
-        this.lastUUID = uuid_1.default();
+        this.stateManager = new fuel_state_manager_1.default(this.options.debug, true);
         this.request = null;
         this.confirmed = false;
         this.cachedSwitch = null;
-        this.scrollPos = this.options.scrollTo;
+        this.scrollTo = { x: 0, y: 0 };
         if (this.options.debug) {
             console.log('Pjax Options:', this.options);
         }
         this.init();
     }
     Pjax.prototype.init = function () {
+        window.addEventListener('popstate', this.handlePopstate);
         if (this.options.customTransitions) {
             document.addEventListener('pjax:continue', this.handleContinue);
         }
         parse_dom_1.default(document.body, this);
+    };
+    Pjax.prototype.loadUrl = function (href, loadType) {
+        this.abortRequest();
+        this.handleLoad(href, loadType);
     };
     Pjax.prototype.abortRequest = function () {
         if (this.request === null) {
@@ -54,45 +68,22 @@ var Pjax = (function () {
         }
         this.request = null;
     };
-    Pjax.prototype.handlePushState = function () {
-        if (this.state.history) {
-            if (this.options.debug) {
-                console.log('Pushing History State: ', this.state);
-            }
-            this.lastUUID = uuid_1.default();
-            window.history.pushState({
-                url: this.state.url,
-                title: this.state.title,
-                uuid: this.lastUUID,
-                scrollPos: [0, 0]
-            }, this.state.title, this.state.url);
-        }
-        else {
-            if (this.options.debug) {
-                console.log('Replacing History State: ', this.state);
-            }
-            this.lastUUID = uuid_1.default();
-            window.history.replaceState({
-                url: this.state.url,
-                title: this.state.title,
-                uuid: this.lastUUID,
-                scrollPos: [0, 0]
-            }, document.title);
-        }
-    };
     Pjax.prototype.finalize = function () {
         if (this.options.debug) {
             console.log('Finishing Pjax');
         }
-        this.state.url = this.request.responseURL;
-        this.state.title = document.title;
-        this.state.scrollPos = [window.scrollX, window.scrollY];
-        scroll_1.default(this.scrollPos);
+        if (this.options.history) {
+            this.stateManager.doPush(this.request.responseURL, document.title);
+        }
+        else {
+            this.stateManager.doReplace(this.request.responseURL, document.title);
+        }
+        scroll_1.default(this.scrollTo);
         this.cache = null;
-        this.state = {};
         this.request = null;
         this.confirmed = false;
         this.cachedSwitch = null;
+        this.scrollTo = { x: 0, y: 0 };
         trigger_1.default(document, ['pjax:complete']);
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
@@ -174,22 +165,12 @@ var Pjax = (function () {
         }
         return false;
     };
-    Pjax.prototype.clearActiveElement = function () {
-        if (document.activeElement) {
-            try {
-                document.activeElement.blur();
-            }
-            catch (e) {
-                console.log(e);
-            }
-        }
-    };
     Pjax.prototype.loadCachedContent = function () {
         if (!this.statusCheck()) {
             this.lastChance(this.cache.url);
             return;
         }
-        this.clearActiveElement();
+        clear_active_1.default();
         this.switchSelectors(this.options.selectors, this.cache.document, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
@@ -225,7 +206,7 @@ var Pjax = (function () {
     Pjax.prototype.loadContent = function (responseText) {
         var tempDocument = this.parseContent(responseText);
         if (tempDocument instanceof HTMLDocument) {
-            this.clearActiveElement();
+            clear_active_1.default();
             this.switchSelectors(this.options.selectors, tempDocument, document);
         }
         else {
@@ -247,7 +228,6 @@ var Pjax = (function () {
         }
         switch (loadType) {
             case 'prefetch':
-                this.state.history = true;
                 if (this.confirmed) {
                     this.loadContent(this.request.responseText);
                 }
@@ -256,15 +236,12 @@ var Pjax = (function () {
                 }
                 break;
             case 'popstate':
-                this.state.history = false;
                 this.loadContent(this.request.responseText);
                 break;
             case 'reload':
-                this.state.history = false;
                 this.loadContent(this.request.responseText);
                 break;
             default:
-                this.state.history = true;
                 this.loadContent(this.request.responseText);
                 break;
         }

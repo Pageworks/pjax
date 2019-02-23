@@ -1,44 +1,45 @@
-interface Options{
-    elements?:          string;
-    selectors?:         string[];
-    history?:           boolean;
-    cacheBust?:         boolean;
-    scrollTo?:          ScrollPosition;
-    debug?:             boolean;
-    timeout?:           number;
-    titleSwitch?:       boolean;
-    customTransitions?: boolean;
+export {Pjax as default};
+
+export as namespace Pjax;
+
+declare class Pjax {
+    constructor(options?: Partial<Pjax.IOptions>);
 }
 
-interface ScrollPosition{
-    x:  number;
-    y:  number;
-}
+declare namespace Pjax{
+    export interface IOptions{
+        elements?:          string;
+        selectors?:         string[];
+        history?:           boolean;
+        cacheBust?:         boolean;
+        debug?:             boolean;
+        timeout?:           number;
+        titleSwitch?:       boolean;
+        customTransitions?: boolean;
+    }
 
-interface CacheObject{
-    status:     number;
-    document:   Document;
-    url:        string;
-}
-
-interface StateObject{
-    url?:       string;
-    timestamp?: number;
-    title?:     string;
-    history?:   boolean;
-    scrollPos?: number[];
-}
-
-interface EventOptions{
-    triggerElement: Element;
-}
-
-interface SwitchObject{
-    new:        Element;
-    current:    Element;
-}
-
-interface CachedSwitchOptions{
-    queue:  Array<SwitchObject>;
-    title?: string;
+    export interface IScrollPosition{
+        x:  number;
+        y:  number;
+    }
+    
+    export interface ICacheObject{
+        status:     number;
+        document:   Document;
+        url:        string;
+    }
+    
+    export interface IEventOptions{
+        triggerElement: Element;
+    }
+    
+    export interface ISwitchObject{
+        new:        Element;
+        current:    Element;
+    }
+    
+    export interface ICachedSwitchOptions{
+        queue:  Array<ISwitchObject>;
+        title?: string;
+    }
 }
