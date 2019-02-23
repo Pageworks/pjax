@@ -3,6 +3,7 @@
 ### Fixes
 
 - Fixes: updates `global.d.ts`
+- Fixes: cleans up if statements to adhere to coding standards
 
 ### Removed
 

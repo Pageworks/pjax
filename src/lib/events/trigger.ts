@@ -1,12 +1,10 @@
 /**
- * Used to dispatch custom events
- * Takes the node you want the event to be dispatched with
- * Loops through array of strings and fires each string as a custom event
- * @param {Node} el
- * @param {Array<string>} events
- * @param {HTMLAnchorElement} target Triggers custom event when set, defaults to `null`
+ * Used to dispatch custom events.
+ * @param el - `Node` that the events should be fired on
+ * @param events - an array of custom event names to dispatch
+ * @param target - triggers custom event when set, defaults to `null`
  */
-export default (el: Node, events: string[], target:HTMLAnchorElement = null)=>{
+export default (el: Node, events: string[], target:Element = null)=>{
     events.forEach((e)=>{
         if(target !== null){
             const customEvent = new CustomEvent(e, {

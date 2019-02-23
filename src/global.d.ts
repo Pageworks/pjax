@@ -1,23 +1,29 @@
-interface IOptions{
+interface Options{
     elements?:          string;
     selectors?:         string[];
     history?:           boolean;
     cacheBust?:         boolean;
-    scrollTo?:          number;
+    scrollTo?:          ScrollPosition;
     debug?:             boolean;
     timeout?:           number;
     titleSwitch?:       boolean;
     customTransitions?: boolean;
 }
 
+interface ScrollPosition{
+    x:  number;
+    y:  number;
+}
+
 interface CacheObject{
-    status: number;
-    html:   Document;
-    url:    string;
+    status:     number;
+    document:   Document;
+    url:        string;
 }
 
 interface StateObject{
     url?:       string;
+    timestamp?: number;
     title?:     string;
     history?:   boolean;
     scrollPos?: number[];
@@ -27,12 +33,12 @@ interface EventOptions{
     triggerElement: Element;
 }
 
-interface SwitchOptions{
-    oldEl: Element;
-    newEl: Element;
+interface SwitchObject{
+    new:        Element;
+    current:    Element;
 }
 
 interface CachedSwitchOptions{
-    queue:  Array<SwitchOptions>;
+    queue:  Array<SwitchObject>;
     title?: string;
 }

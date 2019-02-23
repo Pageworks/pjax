@@ -1,20 +1,19 @@
+import Pjax from "../../pjax";
+import setLinkListeners from '../events/link-events';
+
 /**
- * Called by `Pjax.parseDOM`
- * Takes the provided element and checks to make sure
- * the element is an HTMLAnchorElement by checking it's tag name
- * If the element is an HTMLAnchorElement check if it alreay has a pjax state
- * If not set link event listeners
- * @param {Element} el
- * @param {Pjax} pjax
+ * Called by `Pjax.parseDOM` method
+ * @param el - element to check
+ * @param pjax - reference to the Pjax
  */
-export default (el:Element, pjax:any)=>{
-    switch(el.tagName.toLocaleLowerCase()){
-        case 'a':
-            if(!el.hasAttribute(pjax.options.attrState)){
-                pjax.setLinkListeners(el);
-            }
-            break;
-        default:
-            throw 'Pjax can only be applied on <a> elements';
+export default (el:Element, pjax:Pjax)=>{
+    
+    // Check if element has a `href` attribute we can use
+    if(el.getAttribute('href')){
+        setLinkListeners(el, pjax);
+    }else{
+        if(pjax.options.debug){
+            console.log(`${ el } is missing a href attribute. Pjax can't assign listeners.`);
+        }
     }
 }
