@@ -313,6 +313,8 @@ export default class Pjax{
         // Clear the active element
         clearActive();
 
+        this.stateManager.doReplace(window.location.href, document.title);
+
         // Build the selector swapping queue
         this.switchSelectors(this.options.selectors, this.cache.document, document);
     }
@@ -378,8 +380,6 @@ export default class Pjax{
      * @param responseText - `responseText` from the `XMLHttpRequest` response
      */
     private loadContent(responseText:string): void{
-        
-        this.stateManager.doReplace(window.location.href, document.title);
 
         // Create a temp HTML document
         const tempDocument = this.parseContent(responseText);
@@ -388,6 +388,8 @@ export default class Pjax{
             
             // Clear the active element
             clearActive();
+
+            this.stateManager.doReplace(window.location.href, document.title);
     
             // Swap the current page with the new page
             this.switchSelectors(this.options.selectors, tempDocument, document);

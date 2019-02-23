@@ -174,6 +174,7 @@ var Pjax = (function () {
             return;
         }
         clear_active_1.default();
+        this.stateManager.doReplace(window.location.href, document.title);
         this.switchSelectors(this.options.selectors, this.cache.document, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
@@ -207,10 +208,10 @@ var Pjax = (function () {
         }
     };
     Pjax.prototype.loadContent = function (responseText) {
-        this.stateManager.doReplace(window.location.href, document.title);
         var tempDocument = this.parseContent(responseText);
         if (tempDocument instanceof HTMLDocument) {
             clear_active_1.default();
+            this.stateManager.doReplace(window.location.href, document.title);
             this.switchSelectors(this.options.selectors, tempDocument, document);
         }
         else {
