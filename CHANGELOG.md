@@ -1,13 +1,19 @@
-# Unreleased Changed - 2019-02-22
+# 1.1.0 - 2019-02-23
+
+### Adds
+
+- Adds: new `StateManager` class manages the windows history
 
 ### Fixes
 
 - Fixes: updates `global.d.ts`
 - Fixes: cleans up if statements to adhere to coding standards
+- Fixes: updates functions and methods to follow TypeScript guidelines
 
 ### Removed
 
 - Removes: browserify
+- Removes: all methods related to window history management
 
 # 1.0.9 - 2019-01-19
 
