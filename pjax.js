@@ -15,7 +15,7 @@ var Pjax = (function () {
                     console.log('Hijacking Popstate Event');
                 }
                 _this.scrollTo = e.state.scrollPos;
-                _this.loadUrl(e.state.url, 'popstate');
+                _this.loadUrl(e.state.uri, 'popstate');
             }
         };
         this.handleContinue = function (e) {
@@ -43,6 +43,7 @@ var Pjax = (function () {
         this.confirmed = false;
         this.cachedSwitch = null;
         this.scrollTo = { x: 0, y: 0 };
+        this.isPushstate = true;
         if (this.options.debug) {
             console.log('Pjax Options:', this.options);
         }
@@ -73,16 +74,19 @@ var Pjax = (function () {
             console.log('Finishing Pjax');
         }
         if (this.options.history) {
-            this.stateManager.doPush(this.request.responseURL, document.title);
-        }
-        else {
-            this.stateManager.doReplace(this.request.responseURL, document.title);
+            if (this.isPushstate) {
+                this.stateManager.doPush(this.request.responseURL, document.title);
+            }
+            else {
+                this.stateManager.doReplace(this.request.responseURL, document.title);
+            }
         }
         scroll_1.default(this.scrollTo);
         this.cache = null;
         this.request = null;
         this.confirmed = false;
         this.cachedSwitch = null;
+        this.isPushstate = true;
         this.scrollTo = { x: 0, y: 0 };
         trigger_1.default(document, ['pjax:complete']);
     };
@@ -113,7 +117,6 @@ var Pjax = (function () {
                 var scripts = Array.from(newContainers[k].querySelectorAll('script'));
                 if (scripts.length > 0) {
                     contiansScripts = true;
-                    return;
                 }
                 var newContainer = newContainers[k];
                 var currentContainer = currentContainers[k];
@@ -236,9 +239,11 @@ var Pjax = (function () {
                 }
                 break;
             case 'popstate':
+                this.isPushstate = false;
                 this.loadContent(this.request.responseText);
                 break;
             case 'reload':
+                this.isPushstate = false;
                 this.loadContent(this.request.responseText);
                 break;
             default:

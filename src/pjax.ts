@@ -14,12 +14,13 @@ import PJAX from './global';
 export default class Pjax{
 
     private stateManager:   StateManager;
-    public options:         PJAX.IOptions;
+    public  options:        PJAX.IOptions;
     private cache:          PJAX.ICacheObject;
     private request:        XMLHttpRequest;
     private confirmed:      boolean;
     private cachedSwitch:   PJAX.ICachedSwitchOptions;
     private scrollTo:       PJAX.IScrollPosition;
+    private isPushstate:    boolean;
 
     constructor(options?:PJAX.IOptions){
         // If IE 11 is detected abort pjax
@@ -35,6 +36,7 @@ export default class Pjax{
         this.confirmed      = false;
         this.cachedSwitch   = null;
         this.scrollTo       = {x:0, y:0};
+        this.isPushstate    = true;
 
         if(this.options.debug){
             console.log('Pjax Options:', this.options);
@@ -65,7 +67,7 @@ export default class Pjax{
                 console.log('Hijacking Popstate Event');
             }
             this.scrollTo = e.state.scrollPos;
-            this.loadUrl(e.state.url, 'popstate');
+            this.loadUrl(e.state.uri, 'popstate');
         }
     }
 
@@ -113,9 +115,11 @@ export default class Pjax{
 
         // Handle the pushState
         if(this.options.history){
-            this.stateManager.doPush(this.request.responseURL, document.title);
-        }else{
-            this.stateManager.doReplace(this.request.responseURL, document.title);
+            if(this.isPushstate){
+                this.stateManager.doPush(this.request.responseURL, document.title);
+            }else{
+                this.stateManager.doReplace(this.request.responseURL, document.title);
+            }
         }
 
         // Update the windows scroll position
@@ -126,6 +130,7 @@ export default class Pjax{
         this.request            = null;
         this.confirmed          = false;
         this.cachedSwitch       = null;
+        this.isPushstate        = true;
         this.scrollTo           = {x:0,y:0};
 
         // Trigger the complete event
@@ -220,7 +225,6 @@ export default class Pjax{
                 const scripts = Array.from(newContainers[k].querySelectorAll('script'));
                 if(scripts.length > 0){
                     contiansScripts = true;
-                    return;
                 }
 
                 // Get the current container object
@@ -427,9 +431,11 @@ export default class Pjax{
                 }
                 break;
             case 'popstate':
+                this.isPushstate = false;
                 this.loadContent(this.request.responseText);
                 break;
             case 'reload':
+                this.isPushstate = false;
                 this.loadContent(this.request.responseText);
                 break;
             default:
