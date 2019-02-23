@@ -1,6 +1,5 @@
 // Function Imports
 import parseOptions from './lib/parse-options';
-import uuid from './lib/uuid';
 import trigger from './lib/events/trigger';
 import parseDOM from './lib/parse-dom';
 import scrollWindow from './lib/util/scroll';
@@ -9,6 +8,7 @@ import clearActive from './lib/util/clear-active';
 // State Manager
 import StateManager from 'fuel-state-manager';
 
+// Type Definitions
 import PJAX from './global';
 
 export default class Pjax{
