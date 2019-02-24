@@ -324,7 +324,11 @@ export default class Pjax{
      * @param responseText - `responseText` from the `XMLHttpRequest` response
      * @returns `HTMLDocument` or `null`
      */
-    private parseContent(responseText: string): HTMLDocument{
+    private parseContent(responseText:string): HTMLDocument{
+        if(!responseText.length){
+            return;
+        }
+        
         const tempDocument:HTMLDocument = document.implementation.createHTMLDocument('pjax-temp-document');
 
         // Use regex to verify the response is a `HTMLDocument`

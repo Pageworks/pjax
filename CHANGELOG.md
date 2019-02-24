@@ -1,3 +1,10 @@
+# 1.1.1 - 2019-02-24
+
+### Fixes
+
+- Fixes: updates `fuel-state-manager` to use the official npm package version
+- Fixes: prefetching non-200 status links [#36](https://github.com/Pageworks/fuel-pjax/issues/36)
+
 # 1.1.0 - 2019-02-23
 
 ### Adds
