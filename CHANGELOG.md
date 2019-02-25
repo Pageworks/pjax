@@ -1,3 +1,9 @@
+# 1.1.2 - 2019-02-25
+
+### Fixes
+
+- Fixes: prefetching 302 redirect cache bug [#36](https://github.com/Pageworks/fuel-pjax/issues/36)
+
 # 1.1.1 - 2019-02-24
 
 ### Fixes
