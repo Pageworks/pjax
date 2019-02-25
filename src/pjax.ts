@@ -326,7 +326,7 @@ export default class Pjax{
      */
     private parseContent(responseText:string): HTMLDocument{
         if(!responseText.length){
-            return;
+            return null;
         }
         
         const tempDocument:HTMLDocument = document.implementation.createHTMLDocument('pjax-temp-document');
@@ -355,16 +355,15 @@ export default class Pjax{
         // Create a temp HTML document
         const tempDocument = this.parseContent(responseText);
 
+        // Create the cache object
+        this.cache = {
+            status: responseStatus,
+            document: tempDocument,
+            url: uri
+        }
+
         // Check that the temp document is valid
         if(tempDocument instanceof HTMLDocument){
-            
-            // Create the cache object
-            this.cache = {
-                status: responseStatus,
-                document: tempDocument,
-                url: uri
-            }
-    
             if(this.options.debug){
                 console.log('Cached Content: ', this.cache);
             }
@@ -375,7 +374,6 @@ export default class Pjax{
 
             // Trigger error if the response wasn't an HTML Document
             trigger(document, ['pjax:error']);
-            return;
         }
     }
 

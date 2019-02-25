@@ -179,7 +179,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.parseContent = function (responseText) {
         if (!responseText.length) {
-            return;
+            return null;
         }
         var tempDocument = document.implementation.createHTMLDocument('pjax-temp-document');
         var htmlRegex = /<html[^>]+>/gi;
@@ -192,12 +192,12 @@ var Pjax = (function () {
     };
     Pjax.prototype.cacheContent = function (responseText, responseStatus, uri) {
         var tempDocument = this.parseContent(responseText);
+        this.cache = {
+            status: responseStatus,
+            document: tempDocument,
+            url: uri
+        };
         if (tempDocument instanceof HTMLDocument) {
-            this.cache = {
-                status: responseStatus,
-                document: tempDocument,
-                url: uri
-            };
             if (this.options.debug) {
                 console.log('Cached Content: ', this.cache);
             }
@@ -207,7 +207,6 @@ var Pjax = (function () {
                 console.log('Response wasn\'t a HTML document');
             }
             trigger_1.default(document, ['pjax:error']);
-            return;
         }
     };
     Pjax.prototype.loadContent = function (responseText) {
