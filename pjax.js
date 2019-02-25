@@ -178,13 +178,10 @@ var Pjax = (function () {
         this.switchSelectors(this.options.selectors, this.cache.document, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
-        if (!responseText.length) {
-            return null;
-        }
         var tempDocument = document.implementation.createHTMLDocument('pjax-temp-document');
         var htmlRegex = /<html[^>]+>/gi;
         var matches = responseText.match(htmlRegex);
-        if (matches.length !== 0) {
+        if (matches !== null) {
             tempDocument.documentElement.innerHTML = responseText;
             return tempDocument;
         }

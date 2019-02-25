@@ -1,3 +1,9 @@
+# 1.1.3 - 2019-02-25
+
+### Fixes
+
+- Fixes: prefetching 404 page caching bug [#36](https://github.com/Pageworks/fuel-pjax/issues/36)
+
 # 1.1.2 - 2019-02-25
 
 ### Fixes
