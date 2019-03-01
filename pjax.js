@@ -98,6 +98,17 @@ var Pjax = (function () {
         this.finalize();
     };
     Pjax.prototype.switchSelectors = function (selectors, tempDocument, currentDocument) {
+        if (tempDocument === null) {
+            if (this.options.debug) {
+                console.log("Temporary document was null. Telling the browser to load " + ((this.cache !== null) ? this.cache.url : this.request.responseURL));
+            }
+            if (this.cache !== null) {
+                this.lastChance(this.cache.url);
+            }
+            else {
+                this.lastChance(this.request.responseURL);
+            }
+        }
         var switchQueue = [];
         var contiansScripts = false;
         for (var i = 0; i < selectors.length; i++) {

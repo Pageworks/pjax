@@ -189,6 +189,18 @@ export default class Pjax{
      */
     private switchSelectors(selectors:string[], tempDocument:HTMLDocument, currentDocument:HTMLDocument): void{
         
+        if(tempDocument === null){
+            if(this.options.debug){
+                console.log(`Temporary document was null. Telling the browser to load ${ (this.cache !== null) ? this.cache.url : this.request.responseURL }`);
+            }
+
+            if(this.cache !== null){
+                this.lastChance(this.cache.url);
+            }else{
+                this.lastChance(this.request.responseURL);
+            }
+        }
+
         // Build a queue of containers to swap
         const switchQueue:Array<PJAX.ISwitchObject> = [];
 

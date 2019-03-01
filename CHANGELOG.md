@@ -1,3 +1,9 @@
+# 1.1.4 - 2019-01-01
+
+### Fixes
+
+- Fixes: `switchSelectors` method now verifies that the temporary document isn't null, if it is Pjax will have the browser load the page
+
 # 1.1.3 - 2019-02-25
 
 ### Fixes
