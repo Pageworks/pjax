@@ -1,3 +1,13 @@
+# 1.2.0 - 2019-03-06
+
+### Adds
+
+- Adds: allows users to device an array of custom attributes to prevent Pjax event listeners from firing [#39](https://github.com/Pageworks/fuel-pjax/issues/39)
+
+### Fixes
+
+- Fixes: updates IE check to use `fuel-device-manager` package
+
 # 1.1.4 - 2019-01-01
 
 ### Fixes

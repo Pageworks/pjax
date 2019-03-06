@@ -6,6 +6,7 @@ var parse_dom_1 = require("./lib/parse-dom");
 var scroll_1 = require("./lib/util/scroll");
 var clear_active_1 = require("./lib/util/clear-active");
 var fuel_state_manager_1 = require("fuel-state-manager");
+var fuel_device_manager_1 = require("fuel-device-manager");
 var Pjax = (function () {
     function Pjax(options) {
         var _this = this;
@@ -32,7 +33,7 @@ var Pjax = (function () {
                 trigger_1.default(document, ['pjax:error']);
             }
         };
-        if ('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style) {
+        if (fuel_device_manager_1.default.isIE) {
             console.log('IE 11 detected - fuel-pjax aborted!');
             return;
         }

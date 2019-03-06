@@ -5,8 +5,9 @@ import parseDOM from './lib/parse-dom';
 import scrollWindow from './lib/util/scroll';
 import clearActive from './lib/util/clear-active';
 
-// State Manager
+// Custom Packages
 import StateManager from 'fuel-state-manager';
+import DeviceManager from 'fuel-device-manager';
 
 // Type Definitions
 import PJAX from './global';
@@ -24,7 +25,7 @@ export default class Pjax{
 
     constructor(options?:PJAX.IOptions){
         // If IE 11 is detected abort pjax
-        if('-ms-scroll-limit' in document.documentElement.style && '-ms-ime-align' in document.documentElement.style){
+        if(DeviceManager.isIE){
             console.log('IE 11 detected - fuel-pjax aborted!');
             return;
         }
