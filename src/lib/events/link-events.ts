@@ -9,7 +9,7 @@ const attrState:string = 'data-pjax-state';
  * @param el - `Element` to check
  * @param e - `Event` that triggered the check
  */
-const isDefaultPrevented = (el:Element, e:Event)=>{
+const isDefaultPrevented = (el:Element, e:Event, options:Array<string>)=>{
     let isPrevented = false;
     if(e.defaultPrevented){
         isPrevented = true;
@@ -25,6 +25,15 @@ const isDefaultPrevented = (el:Element, e:Event)=>{
     }
     else if(el.getAttribute('target') === '_blank'){
         isPrevented = true;
+    }
+
+    // Check for custom prevention attributes
+    if(options.length > 0){
+        for(let i = 0; i < options.length; i++){
+            if(el.getAttribute(options[i]) !== null){
+                isPrevented = true;
+            }
+        }
     }
     
     return isPrevented;
@@ -66,7 +75,7 @@ const checkForAbort = (el:Element, e:Event)=>{
 const handleClick = (el:Element, e:Event, pjax:Pjax)=>{
     
     // Check if Pjax should ignore the event
-    if(isDefaultPrevented(el, e)){
+    if(isDefaultPrevented(el, e, pjax.options.customPreventionAttributes)){
         return;
     }
 
@@ -102,7 +111,7 @@ const handleClick = (el:Element, e:Event, pjax:Pjax)=>{
 const handleHover = (el:Element, e:Event, pjax:Pjax)=>{
     
     // Check if Pjax should ignore the event
-    if(isDefaultPrevented(el, e)){
+    if(isDefaultPrevented(el, e, pjax.options.customPreventionAttributes)){
         return;
     }
 

@@ -8,14 +8,15 @@ declare class Pjax {
 
 declare namespace Pjax{
     export interface IOptions{
-        elements?:          string;
-        selectors?:         string[];
-        history?:           boolean;
-        cacheBust?:         boolean;
-        debug?:             boolean;
-        timeout?:           number;
-        titleSwitch?:       boolean;
-        customTransitions?: boolean;
+        elements?:                      string;
+        selectors?:                     Array<string>;
+        history?:                       boolean;
+        cacheBust?:                     boolean;
+        debug?:                         boolean;
+        timeout?:                       number;
+        titleSwitch?:                   boolean;
+        customTransitions?:             boolean;
+        customPreventionAttributes?:    Array<string>;
     }
 
     export interface IScrollPosition{
