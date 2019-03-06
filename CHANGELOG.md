@@ -1,3 +1,9 @@
+# 1.2.0 - 2019-03-06
+
+### Fixes
+
+- Fixes: updates IE check to use `fuel-device-manager` package
+
 # 1.1.4 - 2019-01-01
 
 ### Fixes
