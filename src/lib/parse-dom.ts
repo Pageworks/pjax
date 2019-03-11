@@ -12,7 +12,7 @@ export default (el:Element, pjax:Pjax)=>{
     const elements:Array<Element> = getElements(el, pjax);
 
     if(pjax.options.debug && elements.length === 0){
-        console.log('No elements could be found! Check your Pjax options object.');
+        console.log('%c[Pjax] '+`%cno elements could be found, check what selectors you're providing Pjax`,'color:#f3ff35','color:#eee');
         return;
     }
     

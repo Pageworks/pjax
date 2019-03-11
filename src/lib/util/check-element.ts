@@ -13,7 +13,7 @@ export default (el:Element, pjax:Pjax)=>{
         setLinkListeners(el, pjax);
     }else{
         if(pjax.options.debug){
-            console.log(`${ el } is missing a href attribute. Pjax can't assign listeners.`);
+            console.log('%c[Pjax] '+`%c${ el } is missing a href attribute, Pjax couldn't assign the event listener`,'color:#f3ff35','color:#eee');
         }
     }
 }
