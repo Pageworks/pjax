@@ -14,6 +14,8 @@ import PJAX from './global';
 
 export default class Pjax{
 
+    public static VERSION:string    = '1.2.1';
+
     private stateManager:   StateManager;
     public  options:        PJAX.IOptions;
     private cache:          PJAX.ICacheObject;
@@ -39,15 +41,16 @@ export default class Pjax{
         this.scrollTo       = {x:0, y:0};
         this.isPushstate    = true;
 
-        if(this.options.debug){
-            console.log('%c[Pjax] '+`%cloaded with the following options:`, 'color:#f3ff35','color:#eee');
-            console.log(this.options);
-        }
-
         this.init();
     }
 
     init(){
+        if(this.options.debug){
+            console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cview Pjax documentation at http://papertrain.io/pjax`, 'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cloading with ${ this.options }`, 'color:#f3ff35','color:#eee');
+        }
+
         window.addEventListener('popstate', this.handlePopstate);
 
         if(this.options.customTransitions){
