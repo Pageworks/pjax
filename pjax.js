@@ -13,7 +13,7 @@ var Pjax = (function () {
         this.handlePopstate = function (e) {
             if (e.state) {
                 if (_this.options.debug) {
-                    console.log('Hijacking Popstate Event');
+                    console.log('%c[Pjax] ' + "%chijacking popstate event", 'color:#f3ff35', 'color:#eee');
                 }
                 _this.scrollTo = e.state.scrollPos;
                 _this.loadUrl(e.state.uri, 'popstate');
@@ -28,13 +28,13 @@ var Pjax = (function () {
             }
             else {
                 if (_this.options.debug) {
-                    console.log('Switch queue was empty. You might be sending `pjax:continue` too fast.');
+                    console.log('%c[Pjax] ' + "%cswitch queue was empty. You might be sending pjax:continue early", 'color:#f3ff35', 'color:#eee');
                 }
                 trigger_1.default(document, ['pjax:error']);
             }
         };
         if (fuel_device_manager_1.default.isIE) {
-            console.log('IE 11 detected - fuel-pjax aborted!');
+            console.log('%c[Pjax] ' + "%cIE 11 detected - Pjax aborted", 'color:#f3ff35', 'color:#eee');
             return;
         }
         this.cache = null;
@@ -46,7 +46,8 @@ var Pjax = (function () {
         this.scrollTo = { x: 0, y: 0 };
         this.isPushstate = true;
         if (this.options.debug) {
-            console.log('Pjax Options:', this.options);
+            console.log('%c[Pjax] ' + "%cloaded with the following options:", 'color:#f3ff35', 'color:#eee');
+            console.log(this.options);
         }
         this.init();
     }
@@ -72,7 +73,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.finalize = function () {
         if (this.options.debug) {
-            console.log('Finishing Pjax');
+            console.log('%c[Pjax] ' + "%cpage transition completed", 'color:#f3ff35', 'color:#eee');
         }
         if (this.options.history) {
             if (this.isPushstate) {
@@ -101,7 +102,7 @@ var Pjax = (function () {
     Pjax.prototype.switchSelectors = function (selectors, tempDocument, currentDocument) {
         if (tempDocument === null) {
             if (this.options.debug) {
-                console.log("Temporary document was null. Telling the browser to load " + ((this.cache !== null) ? this.cache.url : this.request.responseURL));
+                console.log('%c[Pjax] ' + ("%ctemporary document was null, telling the browser to load " + ((this.cache !== null) ? this.cache.url : this.request.responseURL)), 'color:#f3ff35', 'color:#eee');
             }
             if (this.cache !== null) {
                 this.lastChance(this.cache.url);
@@ -116,11 +117,11 @@ var Pjax = (function () {
             var newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
             var currentContainers = Array.from(currentDocument.querySelectorAll(selectors[i]));
             if (this.options.debug) {
-                console.log('Pjax Switch Selector: ', selectors[i], newContainers, currentContainers);
+                console.log('%c[Pjax] ' + ("%cswapping " + newContainers + " from selector " + selectors[i] + " into " + currentContainers), 'color:#f3ff35', 'color:#eee');
             }
             if (newContainers.length !== currentContainers.length) {
                 if (this.options.debug) {
-                    console.log('DOM doesn\'t look the same on the new page');
+                    console.log('%c[Pjax] ' + "%cthe dom doesn't look the same", 'color:#f3ff35', 'color:#eee');
                 }
                 this.lastChance(this.request.responseURL);
                 return;
@@ -141,14 +142,14 @@ var Pjax = (function () {
         }
         if (switchQueue.length === 0) {
             if (this.options.debug) {
-                console.log('Couldn\'t find anything to switch');
+                console.log('%c[Pjax] ' + "%ccouldn't find anything to switch", 'color:#f3ff35', 'color:#eee');
             }
             this.lastChance(this.request.responseURL);
             return;
         }
         if (contiansScripts) {
             if (this.options.debug) {
-                console.log('New page contains script elements.');
+                console.log('%c[Pjax] ' + "%cthe new page contains scripts", 'color:#f3ff35', 'color:#eee');
             }
             this.lastChance(this.request.responseURL);
             return;
@@ -168,7 +169,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.lastChance = function (uri) {
         if (this.options.debug) {
-            console.log("Something went wrong, native loading " + uri);
+            console.log('%c[Pjax] ' + ("%csomething caused Pjax to break, native loading " + uri), 'color:#f3ff35', 'color:#eee');
         }
         window.location.href = uri;
     };
@@ -208,12 +209,12 @@ var Pjax = (function () {
         };
         if (tempDocument instanceof HTMLDocument) {
             if (this.options.debug) {
-                console.log('Cached Content: ', this.cache);
+                console.log('%c[Pjax] ' + "%ccaching content", 'color:#f3ff35', 'color:#eee');
             }
         }
         else {
             if (this.options.debug) {
-                console.log('Response wasn\'t a HTML document');
+                console.log('%c[Pjax] ' + "%cresponse wan't an HTML document", 'color:#f3ff35', 'color:#eee');
             }
             trigger_1.default(document, ['pjax:error']);
         }
@@ -227,7 +228,7 @@ var Pjax = (function () {
         }
         else {
             if (this.options.debug) {
-                console.log('Response wasn\'t a HTML document');
+                console.log('%c[Pjax] ' + "%cresponse wasn't an HTML document", 'color:#f3ff35', 'color:#eee');
             }
             trigger_1.default(document, ['pjax:error']);
             this.lastChance(this.request.responseURL);
@@ -236,7 +237,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.handleResponse = function (e, loadType) {
         if (this.options.debug) {
-            console.log('XML Http Request Status: ', this.request.status);
+            console.log('%c[Pjax] ' + ("%cXML Http Request status: " + this.request.status), 'color:#f3ff35', 'color:#eee');
         }
         if (this.request.responseText === null) {
             trigger_1.default(document, ['pjax:error']);
@@ -292,7 +293,7 @@ var Pjax = (function () {
             return;
         }
         if (this.options.debug) {
-            console.log('Prefetching: ', href);
+            console.log('%c[Pjax] ' + ("%cprefetching " + href), 'color:#f3ff35', 'color:#eee');
         }
         this.abortRequest();
         trigger_1.default(document, ['pjax:prefetch']);
@@ -300,7 +301,8 @@ var Pjax = (function () {
             _this.handleResponse(e, 'prefetch');
         }).catch(function (e) {
             if (_this.options.debug) {
-                console.log('XHR Request Error: ', e);
+                console.log('%c[Pjax] ' + "%cXHR error:", 'color:#f3ff35', 'color:#eee');
+                console.log(e);
             }
         });
     };
@@ -314,25 +316,26 @@ var Pjax = (function () {
         this.confirmed = true;
         if (this.cache !== null) {
             if (this.options.debug) {
-                console.log('Loading Cached: ', href);
+                console.log('%c[Pjax] ' + ("%cloading cached content from " + href), 'color:#f3ff35', 'color:#eee');
             }
             this.loadCachedContent();
         }
         else if (this.request !== null) {
             if (this.options.debug) {
-                console.log('Loading Prefetch: ', href);
+                console.log('%c[Pjax] ' + ("%cconfirming prefetch for " + href), 'color:#f3ff35', 'color:#eee');
             }
             this.confirmed = true;
         }
         else {
             if (this.options.debug) {
-                console.log('Loading: ', href);
+                console.log('%c[Pjax] ' + ("%cloading " + href), 'color:#f3ff35', 'color:#eee');
             }
             this.doRequest(href).then(function (e) {
                 _this.handleResponse(e, loadType);
             }).catch(function (e) {
                 if (_this.options.debug) {
-                    console.log('XHR Request Error: ', e);
+                    console.log('%c[Pjax] ' + "%cXHR error:", 'color:#f3ff35', 'color:#eee');
+                    console.log(e);
                 }
             });
         }

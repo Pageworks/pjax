@@ -1,3 +1,9 @@
+# 1.2.1 - 2019-03-11
+
+### Fixes
+
+- Fixes: updates console logs for better debugging
+
 # 1.2.0 - 2019-03-06
 
 ### Adds
