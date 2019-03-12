@@ -6,6 +6,7 @@
 - Adds: `/testing` directory
 - Adds: new `npm run bundle` script for running webpack
 - Adds: new `npm run test` script for compiling, bundling, and launching a static http server for testing features
+- Adds: basic demo page and testing content
 
 # 1.2.1 - 2019-03-11
 
