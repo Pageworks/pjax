@@ -349,7 +349,7 @@ var Pjax = (function () {
             trigger_1.default(document, ['pjax:cancel']);
         }
     };
-    Pjax.VERSION = '1.2.1';
+    Pjax.VERSION = '1.2.2';
     return Pjax;
 }());
 exports.default = Pjax;
