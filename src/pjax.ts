@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.2.1';
+    public static VERSION:string    = '1.2.2';
 
     private stateManager:   StateManager;
     public  options:        PJAX.IOptions;
@@ -48,7 +48,8 @@ export default class Pjax{
         if(this.options.debug){
             console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
             console.log('%c[Pjax] '+`%cview Pjax documentation at http://papertrain.io/pjax`, 'color:#f3ff35','color:#eee');
-            console.log('%c[Pjax] '+`%cloading with ${ this.options }`, 'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
+            console.log(this.options);
         }
 
         window.addEventListener('popstate', this.handlePopstate);
