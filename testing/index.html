@@ -8,17 +8,18 @@
 </head>
 <body>
     <article>
-        <section>
+        <aside>
             <h1>Pjax Demo</h1>
             <p>Pjax is a utility that easily helps any website implement AJAX page transitions using an XML Http Request and a pushState. Pjax offers easy event listener hooks for custom page transitions and link prefetching.</p>
             <h2>Custom Events</h2>
             <ul>
-                <li class="js-prefetch">Prefetching</li>
-                <li class="js-load">Loading</li>
-                <li class="js-error">Error</li>
-                <li class="js-cancel">Canceled</li>
-                <li class="js-complete">Complete</li>
+                <li class="-green js-prefetch">Prefetching</li>
+                <li class="-green js-load">Loading</li>
+                <li class="-red js-error">Error</li>
+                <li class="-red js-cancel">Canceled</li>
+                <li class="-green js-complete">Complete</li>
             </ul>
+            <button class="js-clear">Clear Events</button>
             <h2>Demo Buttons</h2>
             <div class="c-buttons">
                 <a href="#">Empty</a>
@@ -27,14 +28,14 @@
                 <a href="index.html">Home</a>
                 <a href="page-2.html">Second Page</a>
             </div>
-        </section>
-        <h2>Demo Content</h2>
-        <div class="js-pjax">
-            <section>
+        </aside>
+        <section class="js-pjax">
+            <h2>Demo Content</h2>
+            <div>
                 <h3>Homepage Content</h3>
                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-            </section>
-        </div>
+            </div>
+        </section>
     </article>
 </body>
 </html>
