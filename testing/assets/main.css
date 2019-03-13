@@ -1,0 +1,143 @@
+body{
+    font-family: sans-serif;
+    background-color: #F8F9FC;
+    font-size: 16px;
+    line-height: 1.618;
+    padding: 64px 0;
+    color: #414141;
+    margin: 0;
+}
+
+*{
+    box-sizing: border-box;
+}
+
+article{
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+aside{
+    width: 50vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow: hidden;
+    padding: 64px;
+    padding-right: 32px;
+}
+
+section{
+    width: 50vw;
+    display: block;
+    margin: -64px 0 0 auto;
+    padding: 64px;
+    padding-left: 32px;
+}
+
+h1{
+    padding: 0;
+    margin: 0;
+    font-size: 32px;
+    opacity: 0.87;
+}
+
+p{
+    opacity: 0.87;
+}
+
+section h2{
+    margin-top: 0;
+}
+
+h2{
+    margin: 64px 0 32px;
+    padding: 0;
+    text-align: center;
+    opacity: 0.87;
+    font-size: 22px;
+}
+
+h3{
+    margin: 0;
+    opacity: 0.87;
+    font-size: 16px;
+}
+
+ul{
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+    display: flex;
+    justify-content: space-between;
+}
+
+ul li{
+    list-style-type: none;
+    display: inline-block;
+    text-transform: uppercase;
+    color: rgba(65,65,65,0.15);
+    user-select: none;
+}
+
+ul li.-green.is-lit{
+    color: rgba(59,255,85,0.87);
+}
+
+ul li.-red.is-lit{
+    color: rgba(255,59,59,0.87);
+}
+
+button{
+    color: #4286f4;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 48px;
+    min-height: 48px;
+    margin: 32px auto 0;
+    display: block;
+    padding: 0 16px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(65,65,65,0.1);
+    border: none;
+    outline: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.c-buttons{
+    display: block;
+    text-align: center;
+    margin: 32px 0;
+}
+
+.c-buttons a{
+    color: #4286f4;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 48px;
+    min-height: 48px;
+    margin: 0 8px;
+    display: inline-block;
+    padding: 0 16px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(65,65,65,0.1);
+}
+
+.js-pjax section{
+    border: rgba(66,134,244,0.15) solid 2px;
+}
+
+.js-pjax section p{
+    padding: 0 16px;
+    margin: 0 0 16px;
+}
+
+.js-pjax section h3{
+    padding: 16px;
+}
