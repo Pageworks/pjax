@@ -77,6 +77,7 @@ var Pjax = (function () {
         if (this.options.debug) {
             console.log('%c[Pjax] ' + "%cpage transition completed", 'color:#f3ff35', 'color:#eee');
         }
+        scroll_1.default(this.scrollTo);
         if (this.options.history) {
             if (this.isPushstate) {
                 this.stateManager.doPush(this.request.responseURL, document.title);
@@ -85,7 +86,6 @@ var Pjax = (function () {
                 this.stateManager.doReplace(this.request.responseURL, document.title);
             }
         }
-        scroll_1.default(this.scrollTo);
         this.cache = null;
         this.request = null;
         this.confirmed = false;
@@ -119,7 +119,7 @@ var Pjax = (function () {
             var newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
             var currentContainers = Array.from(currentDocument.querySelectorAll(selectors[i]));
             if (this.options.debug) {
-                console.log('%c[Pjax] ' + ("%cswapping " + newContainers + " from selector " + selectors[i] + " into " + currentContainers), 'color:#f3ff35', 'color:#eee');
+                console.log('%c[Pjax] ' + ("%cswapping content from " + selectors[i]), 'color:#f3ff35', 'color:#eee');
             }
             if (newContainers.length !== currentContainers.length) {
                 if (this.options.debug) {

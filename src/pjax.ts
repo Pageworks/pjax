@@ -119,6 +119,9 @@ export default class Pjax{
             console.log('%c[Pjax] '+`%cpage transition completed`,'color:#f3ff35','color:#eee');
         }
 
+        // Update the windows scroll position
+        scrollWindow(this.scrollTo);
+
         // Handle the pushState
         if(this.options.history){
             if(this.isPushstate){
@@ -127,9 +130,6 @@ export default class Pjax{
                 this.stateManager.doReplace(this.request.responseURL, document.title);
             }
         }
-
-        // Update the windows scroll position
-        scrollWindow(this.scrollTo);
 
         // Reset status trackers
         this.cache              = null;
@@ -221,7 +221,7 @@ export default class Pjax{
             const currentContainers = Array.from(currentDocument.querySelectorAll(selectors[i]));
 
             if(this.options.debug){
-                console.log('%c[Pjax] '+`%cswapping ${ newContainers } from selector ${ selectors[i] } into ${ currentContainers }`,'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%cswapping content from ${ selectors[i] }`,'color:#f3ff35','color:#eee');
             }
 
             // Check that the selector contains exist on both documents
