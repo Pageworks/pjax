@@ -86,6 +86,7 @@ export default class Pjax{
         
         // Abort any current request
         this.abortRequest();
+        this.cache = null;
 
         // Handle the page load request
         this.handleLoad(href, loadType);
