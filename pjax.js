@@ -62,6 +62,7 @@ var Pjax = (function () {
     };
     Pjax.prototype.loadUrl = function (href, loadType) {
         this.abortRequest();
+        this.cache = null;
         this.handleLoad(href, loadType);
     };
     Pjax.prototype.abortRequest = function () {
