@@ -1,3 +1,9 @@
+# 1.2.4 - 2019-03-16
+
+### Fixes
+
+- Fixes: updates version number for Pjax console log
+
 # 1.2.3 - 2019-03-16
 
 ### Fixes
