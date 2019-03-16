@@ -1,6 +1,6 @@
 {
     "name": "fuel-pjax",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "description": "Easily enable fast AJAX navigation using pushState + XMLHttpRequest Prefetching",
     "keywords": [
         "pjax",

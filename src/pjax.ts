@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.2.2';
+    public static VERSION:string    = '1.2.4';
 
     private stateManager:   StateManager;
     public  options:        PJAX.IOptions;
