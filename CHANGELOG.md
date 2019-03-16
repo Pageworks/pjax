@@ -1,3 +1,9 @@
+# 1.2.3 - 2019-03-16
+
+### Fixes
+
+- Fixes: bug that occures when a page is cached but the user triggers a popstate via touch gestures
+
 # 1.2.2 - 2019-03-11
 
 ### Adds
