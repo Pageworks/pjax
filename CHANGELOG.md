@@ -1,3 +1,9 @@
+# 1.2.5 - 2019-03-24
+
+### Fixes
+
+- Fixes: updates `StateManager` to user the new static methods provided in the `1.0.1` update
+
 # 1.2.4 - 2019-03-16
 
 ### Fixes
