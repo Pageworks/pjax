@@ -6,6 +6,7 @@ Add Pjax as a dependency to your `package.json` with `npm i --save fuel-pjax`. O
 
 ## How Pjax Works
 [Watch the Introduction to Pjax Video](https://youtu.be/2bz_lrk--NE)
+
 Pjax loads pages using an `XMLHttpRequest` and updates the browser's current URL using a `window.pushState()` all without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user triggers an `onmouseleave` event the `XHR` request is canceled. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
 
 Under the hood Pjax is **one HTTP request** with a `window.pushState()`.
