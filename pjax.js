@@ -39,7 +39,6 @@ var Pjax = (function () {
         }
         this.cache = null;
         this.options = parse_options_1.default(options);
-        this.stateManager = new fuel_state_manager_1.default(this.options.debug, true);
         this.request = null;
         this.confirmed = false;
         this.cachedSwitch = null;
@@ -54,6 +53,7 @@ var Pjax = (function () {
             console.log('%c[Pjax] ' + "%cloaded with the following options: ", 'color:#f3ff35', 'color:#eee');
             console.log(this.options);
         }
+        new fuel_state_manager_1.default(this.options.debug, true);
         window.addEventListener('popstate', this.handlePopstate);
         if (this.options.customTransitions) {
             document.addEventListener('pjax:continue', this.handleContinue);
@@ -81,10 +81,10 @@ var Pjax = (function () {
         scroll_1.default(this.scrollTo);
         if (this.options.history) {
             if (this.isPushstate) {
-                this.stateManager.doPush(this.request.responseURL, document.title);
+                fuel_state_manager_1.default.doPush(this.request.responseURL, document.title);
             }
             else {
-                this.stateManager.doReplace(this.request.responseURL, document.title);
+                fuel_state_manager_1.default.doReplace(this.request.responseURL, document.title);
             }
         }
         this.cache = null;
@@ -190,7 +190,7 @@ var Pjax = (function () {
             return;
         }
         clear_active_1.default();
-        this.stateManager.doReplace(window.location.href, document.title);
+        fuel_state_manager_1.default.doReplace(window.location.href, document.title);
         this.switchSelectors(this.options.selectors, this.cache.document, document);
     };
     Pjax.prototype.parseContent = function (responseText) {
@@ -226,7 +226,7 @@ var Pjax = (function () {
         var tempDocument = this.parseContent(responseText);
         if (tempDocument instanceof HTMLDocument) {
             clear_active_1.default();
-            this.stateManager.doReplace(window.location.href, document.title);
+            fuel_state_manager_1.default.doReplace(window.location.href, document.title);
             this.switchSelectors(this.options.selectors, tempDocument, document);
         }
         else {
@@ -350,7 +350,7 @@ var Pjax = (function () {
             trigger_1.default(document, ['pjax:cancel']);
         }
     };
-    Pjax.VERSION = '1.2.4';
+    Pjax.VERSION = '1.2.5';
     return Pjax;
 }());
 exports.default = Pjax;

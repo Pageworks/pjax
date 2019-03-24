@@ -14,9 +14,8 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.2.4';
+    public static VERSION:string    = '1.2.5';
 
-    private stateManager:   StateManager;
     public  options:        PJAX.IOptions;
     private cache:          PJAX.ICacheObject;
     private request:        XMLHttpRequest;
@@ -34,7 +33,6 @@ export default class Pjax{
         
         this.cache          = null;
         this.options        = parseOptions(options);
-        this.stateManager   = new StateManager(this.options.debug, true);
         this.request        = null;
         this.confirmed      = false;
         this.cachedSwitch   = null;
@@ -51,6 +49,8 @@ export default class Pjax{
             console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
             console.log(this.options);
         }
+
+        new StateManager(this.options.debug, true);
 
         window.addEventListener('popstate', this.handlePopstate);
 
@@ -126,9 +126,9 @@ export default class Pjax{
         // Handle the pushState
         if(this.options.history){
             if(this.isPushstate){
-                this.stateManager.doPush(this.request.responseURL, document.title);
+                StateManager.doPush(this.request.responseURL, document.title);
             }else{
-                this.stateManager.doReplace(this.request.responseURL, document.title);
+                StateManager.doReplace(this.request.responseURL, document.title);
             }
         }
 
@@ -333,7 +333,7 @@ export default class Pjax{
         // Clear the active element
         clearActive();
 
-        this.stateManager.doReplace(window.location.href, document.title);
+        StateManager.doReplace(window.location.href, document.title);
 
         // Build the selector swapping queue
         this.switchSelectors(this.options.selectors, this.cache.document, document);
@@ -407,7 +407,7 @@ export default class Pjax{
             // Clear the active element
             clearActive();
 
-            this.stateManager.doReplace(window.location.href, document.title);
+            StateManager.doReplace(window.location.href, document.title);
     
             // Swap the current page with the new page
             this.switchSelectors(this.options.selectors, tempDocument, document);

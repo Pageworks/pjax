@@ -1,6 +1,6 @@
 {
     "name": "fuel-pjax",
-    "version": "1.2.4",
+    "version": "1.2.5",
     "description": "Easily enable fast AJAX navigation using pushState + XMLHttpRequest Prefetching",
     "keywords": [
         "pjax",
@@ -32,8 +32,8 @@
         }
     },
     "dependencies": {
-        "fuel-device-manager": "latest",
-        "fuel-state-manager": "latest"
+        "fuel-device-manager": "^1.0.2",
+        "fuel-state-manager": "^1.0.1"
     },
     "devDependencies": {
         "http-server": "^0.11.1",
@@ -42,7 +42,7 @@
         "tslint": "^5.14.0",
         "tslint-config-airbnb": "^5.11.1",
         "tslint-config-prettier": "^1.18.0",
-        "typescript": "^3.3.3333",
+        "typescript": "^3.3.4000",
         "webpack": "^4.29.6",
         "webpack-cli": "^3.3.0"
     },
