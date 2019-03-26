@@ -1,7 +1,7 @@
 {
-    "name": "fuel-pjax",
+    "name": "@codewithkyle/pjax",
     "version": "1.2.5",
-    "description": "Easily enable fast AJAX navigation using pushState + XMLHttpRequest Prefetching",
+    "description": "A TypeScript module for handling AJAX page navigation using XMLHttpRequests.",
     "keywords": [
         "pjax",
         "pushstate",
@@ -9,13 +9,11 @@
         "navigation",
         "transition",
         "animation",
-        "prefetcher"
+        "prefetcher",
+        "typescript"
     ],
-    "repository": "https://github.com/Pageworks/fuel-pjax.git",
-    "author": "Kyle Andrews",
-    "contributors": [
-        "Kyle Andrews (http://devkyle.com)"
-    ],
+    "repository": "https://github.com/codewithkyle/pjax.git",
+    "author": "Kyle Andrews (http://codewithkyle.com/)",
     "license": "MIT",
     "main": "pjax.js",
     "types": "./src/global.d.ts",
@@ -32,8 +30,8 @@
         }
     },
     "dependencies": {
-        "fuel-device-manager": "^1.0.2",
-        "fuel-state-manager": "^1.0.1"
+        "@codewithkyle/device-manager": "latest",
+        "@codewithkyle/state-manager": "latest"
     },
     "devDependencies": {
         "http-server": "^0.11.1",
