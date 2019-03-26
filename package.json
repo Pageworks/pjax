@@ -1,6 +1,6 @@
 {
     "name": "@codewithkyle/pjax",
-    "version": "1.2.5",
+    "version": "1.3.0",
     "description": "A TypeScript module for handling AJAX page navigation using XMLHttpRequests.",
     "keywords": [
         "pjax",
