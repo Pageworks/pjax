@@ -1,3 +1,13 @@
+# 1.3.0 - 2019-03-27
+
+### Adds
+
+- Adds: Pjax manages the `HTML` status classes that developers can use to manage page transitions/animations
+
+### Fixes
+
+- Fixes: switches dependencies to use the version provided by `@codewithkyle`
+
 # 1.2.5 - 2019-03-24
 
 ### Fixes

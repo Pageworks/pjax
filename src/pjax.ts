@@ -6,38 +6,43 @@ import scrollWindow from './lib/util/scroll';
 import clearActive from './lib/util/clear-active';
 
 // Custom Packages
-import StateManager from 'fuel-state-manager';
-import DeviceManager from 'fuel-device-manager';
+import StateManager from '@codewithkyle/state-manager';
+import DeviceManager from '@codewithkyle/device-manager';
 
 // Type Definitions
 import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.2.5';
+    public static VERSION:string    = '1.3.0';
 
     public  options:        PJAX.IOptions;
-    private cache:          PJAX.ICacheObject;
-    private request:        XMLHttpRequest;
-    private confirmed:      boolean;
-    private cachedSwitch:   PJAX.ICachedSwitchOptions;
-    private scrollTo:       PJAX.IScrollPosition;
-    private isPushstate:    boolean;
+    private _cache:         PJAX.ICacheObject;
+    private _request:       XMLHttpRequest;
+    private _confirmed:     boolean;
+    private _cachedSwitch:  PJAX.ICachedSwitchOptions;
+    private _scrollTo:      PJAX.IScrollPosition;
+    private _isPushstate:   boolean;
+    private _dom:           HTMLElement;
 
     constructor(options?:PJAX.IOptions){
+        this._dom           = document.documentElement;
+
         // If IE 11 is detected abort pjax
         if(DeviceManager.isIE){
             console.log('%c[Pjax] '+`%cIE 11 detected - Pjax aborted`,'color:#f3ff35','color:#eee');
+            this._dom.classList.remove('dom-is-loading');
+            this._dom.classList.add('dom-is-loaded');
             return;
         }
         
-        this.cache          = null;
+        this._cache         = null;
         this.options        = parseOptions(options);
-        this.request        = null;
-        this.confirmed      = false;
-        this.cachedSwitch   = null;
-        this.scrollTo       = {x:0, y:0};
-        this.isPushstate    = true;
+        this._request       = null;
+        this._confirmed     = false;
+        this._cachedSwitch  = null;
+        this._scrollTo      = {x:0, y:0};
+        this._isPushstate   = true;
 
         this.init();
     }
@@ -49,6 +54,11 @@ export default class Pjax{
             console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
             console.log(this.options);
         }
+
+        // Handle status classes for initial load
+        this._dom.classList.add('dom-is-loaded');
+        this._dom.classList.remove('dom-is-loading');
+        
 
         new StateManager(this.options.debug, true);
 
@@ -72,7 +82,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%chijacking popstate event`,'color:#f3ff35','color:#eee');
             }
-            this.scrollTo = e.state.scrollPos;
+            this._scrollTo = e.state.scrollPos;
             this.loadUrl(e.state.uri, 'popstate');
         }
     }
@@ -86,7 +96,7 @@ export default class Pjax{
         
         // Abort any current request
         this.abortRequest();
-        this.cache = null;
+        this._cache = null;
 
         // Handle the page load request
         this.handleLoad(href, loadType);
@@ -98,17 +108,17 @@ export default class Pjax{
     private abortRequest(): void{
         
         // Do nothing if there isn't already a request
-        if(this.request === null){
+        if(this._request === null){
             return;
         }
 
         // Abort the request if the server hasn't responded
-        if(this.request.readyState !== 4){
-            this.request.abort();
+        if(this._request.readyState !== 4){
+            this._request.abort();
         }
 
         // Reset the request
-        this.request = null;
+        this._request = null;
     }
 
     /**
@@ -121,27 +131,31 @@ export default class Pjax{
         }
 
         // Update the windows scroll position
-        scrollWindow(this.scrollTo);
+        scrollWindow(this._scrollTo);
 
         // Handle the pushState
         if(this.options.history){
-            if(this.isPushstate){
-                StateManager.doPush(this.request.responseURL, document.title);
+            if(this._isPushstate){
+                StateManager.doPush(this._request.responseURL, document.title);
             }else{
-                StateManager.doReplace(this.request.responseURL, document.title);
+                StateManager.doReplace(this._request.responseURL, document.title);
             }
         }
 
         // Reset status trackers
-        this.cache              = null;
-        this.request            = null;
-        this.confirmed          = false;
-        this.cachedSwitch       = null;
-        this.isPushstate        = true;
-        this.scrollTo           = {x:0,y:0};
+        this._cache              = null;
+        this._request            = null;
+        this._confirmed          = false;
+        this._cachedSwitch       = null;
+        this._isPushstate        = true;
+        this._scrollTo           = {x:0,y:0};
 
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
+
+        // Handle status classes
+        this._dom.classList.add('dom-is-loaded');
+        this._dom.classList.remove('dom-is-loading');
     }
 
     /**
@@ -170,15 +184,15 @@ export default class Pjax{
      */
     private handleContinue:EventListener = (e:Event)=>{
         // Check if Pjax has cached the new page
-        if(this.cachedSwitch !== null){
+        if(this._cachedSwitch !== null){
             
             // Check if the titles need to be swapped
             if(this.options.titleSwitch){
-                document.title = this.cachedSwitch.title;
+                document.title = this._cachedSwitch.title;
             }
             
             // Swap content
-            this.handleSwitches(this.cachedSwitch.queue);
+            this.handleSwitches(this._cachedSwitch.queue);
         }else{
             // The developer fired the continue event too early so the page hasn't finished loading
             if(this.options.debug){
@@ -198,13 +212,13 @@ export default class Pjax{
         
         if(tempDocument === null){
             if(this.options.debug){
-                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this.cache !== null) ? this.cache.url : this.request.responseURL }`,'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this._cache !== null) ? this._cache.url : this._request.responseURL }`,'color:#f3ff35','color:#eee');
             }
 
-            if(this.cache !== null){
-                this.lastChance(this.cache.url);
+            if(this._cache !== null){
+                this.lastChance(this._cache.url);
             }else{
-                this.lastChance(this.request.responseURL);
+                this.lastChance(this._request.responseURL);
             }
         }
 
@@ -233,7 +247,7 @@ export default class Pjax{
                 }
 
                 // If a document is missing a container natively load the page
-                this.lastChance(this.request.responseURL);
+                this.lastChance(this._request.responseURL);
 
                 return;
             }
@@ -267,7 +281,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%ccouldn't find anything to switch`,'color:#f3ff35','color:#eee');
             }
-            this.lastChance(this.request.responseURL);
+            this.lastChance(this._request.responseURL);
             return;
         }
 
@@ -276,7 +290,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
             }
-            this.lastChance(this.request.responseURL);
+            this.lastChance(this._request.responseURL);
             return;
         }
         
@@ -287,7 +301,7 @@ export default class Pjax{
             }
             this.handleSwitches(switchQueue);
         }else{
-            this.cachedSwitch = {
+            this._cachedSwitch = {
                 queue: switchQueue,
                 title: tempDocument.title
             };
@@ -312,7 +326,7 @@ export default class Pjax{
      */
     private statusCheck(): boolean{
         for(let status = 200; status <= 206; status++){
-            if(this.cache.status === status){
+            if(this._cache.status === status){
                 return true;
             }
         }
@@ -326,7 +340,7 @@ export default class Pjax{
         
         // Verify that the server responded with a 200 level response status
         if(!this.statusCheck()){
-            this.lastChance(this.cache.url);
+            this.lastChance(this._cache.url);
             return;
         }
 
@@ -336,7 +350,7 @@ export default class Pjax{
         StateManager.doReplace(window.location.href, document.title);
 
         // Build the selector swapping queue
-        this.switchSelectors(this.options.selectors, this.cache.document, document);
+        this.switchSelectors(this.options.selectors, this._cache.document, document);
     }
 
     /**
@@ -372,7 +386,7 @@ export default class Pjax{
         const tempDocument = this.parseContent(responseText);
 
         // Create the cache object
-        this.cache = {
+        this._cache = {
             status: responseStatus,
             document: tempDocument,
             url: uri
@@ -421,7 +435,7 @@ export default class Pjax{
             trigger(document, ['pjax:error']);
 
             // Have the browser load the page natively
-            this.lastChance(this.request.responseURL);
+            this.lastChance(this._request.responseURL);
 
             return;
         }
@@ -434,11 +448,11 @@ export default class Pjax{
      */
     private handleResponse(e:ProgressEvent, loadType:string): void{
         if(this.options.debug){
-            console.log('%c[Pjax] '+`%cXML Http Request status: ${ this.request.status }`,'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cXML Http Request status: ${ this._request.status }`,'color:#f3ff35','color:#eee');
         }
         
         // Check if the server response is valid
-        if(this.request.responseText === null){
+        if(this._request.responseText === null){
             trigger(document, ['pjax:error']);
             return;
         }
@@ -446,22 +460,22 @@ export default class Pjax{
         // Handle the response based on the load type provided
         switch(loadType){
             case 'prefetch':
-                if(this.confirmed){
-                    this.loadContent(this.request.responseText);
+                if(this._confirmed){
+                    this.loadContent(this._request.responseText);
                 }else{
-                    this.cacheContent(this.request.responseText, this.request.status, this.request.responseURL);
+                    this.cacheContent(this._request.responseText, this._request.status, this._request.responseURL);
                 }
                 break;
             case 'popstate':
-                this.isPushstate = false;
-                this.loadContent(this.request.responseText);
+                this._isPushstate = false;
+                this.loadContent(this._request.responseText);
                 break;
             case 'reload':
-                this.isPushstate = false;
-                this.loadContent(this.request.responseText);
+                this._isPushstate = false;
+                this.loadContent(this._request.responseText);
                 break;
             default:
-                this.loadContent(this.request.responseText);
+                this.loadContent(this._request.responseText);
                 break;
         }
     }
@@ -492,7 +506,7 @@ export default class Pjax{
             request.onload = resolve;
             request.onerror = reject;
             request.send();
-            this.request = request;
+            this._request = request;
         });
     }
 
@@ -504,7 +518,7 @@ export default class Pjax{
     public handlePrefetch(href:string): void{
         
         // Don't prefetch links after the user has confirmed a page switch
-        if(this.confirmed){
+        if(this._confirmed){
             return;
         }
 
@@ -537,29 +551,33 @@ export default class Pjax{
     public handleLoad(href:string, loadType:string, el:Element = null): void{
         
         // If the user already confirmed the page switch abort load
-        if(this.confirmed){
+        if(this._confirmed){
             return;
         }
 
         // Trigger the send event
         trigger(document, ['pjax:send'], el);
 
+        // Handle status classes
+        this._dom.classList.remove('dom-is-loaded');
+        this._dom.classList.add('dom-is-loading');
+
         // Set the page switch confirmed flag
-        this.confirmed = true;
+        this._confirmed = true;
 
         // Check if the new page is cached
-        if(this.cache !== null){
+        if(this._cache !== null){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cloading cached content from ${ href }`,'color:#f3ff35','color:#eee');
             }
             this.loadCachedContent();
         }
         // Check if Pjax is still waiting for the server to respond
-        else if(this.request !== null){
+        else if(this._request !== null){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cconfirming prefetch for ${ href }`,'color:#f3ff35','color:#eee');
             }
-            this.confirmed = true;
+            this._confirmed = true;
         }
         // Pjax isn't prefetching, do the request
         else{
@@ -583,10 +601,10 @@ export default class Pjax{
     public clearPrefetch(): void{
         
         // Check that the user hasn't confirmed a page switch
-        if(!this.confirmed){
+        if(!this._confirmed){
             
             // Reset the cache
-            this.cache = null;
+            this._cache = null;
 
             // Abort any current requests
             this.abortRequest();
