@@ -1,7 +1,7 @@
 {
     "name": "@codewithkyle/pjax",
-    "version": "1.3.0",
-    "description": "A TypeScript module for handling AJAX page navigation using XMLHttpRequests.",
+    "version": "2.0.0",
+    "description": "Turns any website into a SPA using Fetch and link prefetching.",
     "keywords": [
         "pjax",
         "pushstate",
@@ -10,7 +10,8 @@
         "transition",
         "animation",
         "prefetcher",
-        "typescript"
+        "typescript",
+        "fetch"
     ],
     "repository": "https://github.com/codewithkyle/pjax.git",
     "author": "Kyle Andrews (http://codewithkyle.com/)",

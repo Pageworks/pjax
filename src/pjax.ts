@@ -14,11 +14,12 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.3.0';
+    public static VERSION:string    = '2.0.0';
 
     public  options:        PJAX.IOptions;
     private _cache:         PJAX.ICacheObject;
-    private _request:       XMLHttpRequest;
+    private _request:       string;
+    private _response:      Response;
     private _confirmed:     boolean;
     private _cachedSwitch:  PJAX.ICachedSwitchOptions;
     private _scrollTo:      PJAX.IScrollPosition;
@@ -39,6 +40,7 @@ export default class Pjax{
         this._cache         = null;
         this.options        = parseOptions(options);
         this._request       = null;
+        this._response      = null;
         this._confirmed     = false;
         this._cachedSwitch  = null;
         this._scrollTo      = {x:0, y:0};
@@ -106,19 +108,11 @@ export default class Pjax{
      * Called when the current request needs to be aborted.
      */
     private abortRequest(): void{
-        
-        // Do nothing if there isn't already a request
-        if(this._request === null){
-            return;
-        }
-
-        // Abort the request if the server hasn't responded
-        if(this._request.readyState !== 4){
-            this._request.abort();
-        }
-
         // Reset the request
         this._request = null;
+
+        // Reset the response
+        this._response = null;
     }
 
     /**
@@ -136,19 +130,20 @@ export default class Pjax{
         // Handle the pushState
         if(this.options.history){
             if(this._isPushstate){
-                StateManager.doPush(this._request.responseURL, document.title);
+                StateManager.doPush(this._response.url, document.title);
             }else{
-                StateManager.doReplace(this._request.responseURL, document.title);
+                StateManager.doReplace(this._response.url, document.title);
             }
         }
 
         // Reset status trackers
-        this._cache              = null;
-        this._request            = null;
-        this._confirmed          = false;
-        this._cachedSwitch       = null;
-        this._isPushstate        = true;
-        this._scrollTo           = {x:0,y:0};
+        this._cache             = null;
+        this._request           = null;
+        this._response          = null;
+        this._confirmed         = false;
+        this._cachedSwitch      = null;
+        this._isPushstate       = true;
+        this._scrollTo          = {x:0,y:0};
 
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
@@ -212,13 +207,13 @@ export default class Pjax{
         
         if(tempDocument === null){
             if(this.options.debug){
-                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this._cache !== null) ? this._cache.url : this._request.responseURL }`,'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this._cache !== null) ? this._cache.url : this._response.url }`,'color:#f3ff35','color:#eee');
             }
 
             if(this._cache !== null){
                 this.lastChance(this._cache.url);
             }else{
-                this.lastChance(this._request.responseURL);
+                this.lastChance(this._response.url);
             }
         }
 
@@ -247,7 +242,7 @@ export default class Pjax{
                 }
 
                 // If a document is missing a container natively load the page
-                this.lastChance(this._request.responseURL);
+                this.lastChance(this._response.url);
 
                 return;
             }
@@ -281,7 +276,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%ccouldn't find anything to switch`,'color:#f3ff35','color:#eee');
             }
-            this.lastChance(this._request.responseURL);
+            this.lastChance(this._response.url);
             return;
         }
 
@@ -290,7 +285,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
             }
-            this.lastChance(this._request.responseURL);
+            this.lastChance(this._response.url);
             return;
         }
         
@@ -435,7 +430,7 @@ export default class Pjax{
             trigger(document, ['pjax:error']);
 
             // Have the browser load the page natively
-            this.lastChance(this._request.responseURL);
+            this.lastChance(this._response.url);
 
             return;
         }
@@ -446,49 +441,50 @@ export default class Pjax{
      * @param e - `ProgressEvent` provided by the `XMLHttpRequest`
      * @param loadType - informs the response handler what type of load is being preformed (eg: reload)
      */
-    private handleResponse(e:ProgressEvent, loadType:string): void{
+    private handleResponse(response:Response): void{
         if(this.options.debug){
-            console.log('%c[Pjax] '+`%cXML Http Request status: ${ this._request.status }`,'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cXML Http Request status: ${ response.status }`,'color:#f3ff35','color:#eee');
         }
         
         // Check if the server response is valid
-        if(this._request.responseText === null){
+        if(!response.ok){
             trigger(document, ['pjax:error']);
             return;
         }
 
-        // Handle the response based on the load type provided
-        switch(loadType){
-            case 'prefetch':
-                if(this._confirmed){
-                    this.loadContent(this._request.responseText);
-                }else{
-                    this.cacheContent(this._request.responseText, this._request.status, this._request.responseURL);
-                }
-                break;
-            case 'popstate':
-                this._isPushstate = false;
-                this.loadContent(this._request.responseText);
-                break;
-            case 'reload':
-                this._isPushstate = false;
-                this.loadContent(this._request.responseText);
-                break;
-            default:
-                this.loadContent(this._request.responseText);
-                break;
-        }
+        this._response = response;
+
+        response.text().then((responseText:string)=>{
+            // Handle the response based on the load type provided
+            switch(this._request){
+                case 'prefetch':
+                    if(this._confirmed){
+                        this.loadContent(responseText);
+                    }else{
+                        this.cacheContent(responseText, this._response.status, this._response.url);
+                    }
+                    break;
+                case 'popstate':
+                    this._isPushstate = false;
+                    this.loadContent(responseText);
+                    break;
+                case 'reload':
+                    this._isPushstate = false;
+                    this.loadContent(responseText);
+                    break;
+                default:
+                    this.loadContent(responseText);
+                    break;
+            }
+        });
     }
 
     /**
-     * Build and send the `XMLHttpRequest` for the new page.
+     * Request the new page using the `fetch` api.
+     * @see https://fetch.spec.whatwg.org/
      * @param href - URI of the reqeusted page
-     * @returns `ProgressEvent` as a `Promise`
      */
-    private doRequest(href:string): Promise<ProgressEvent>{
-        const   reqeustMethod:string  = 'GET';
-        const   timeout               = this.options.timeout || 0;
-        const   request               = new XMLHttpRequest();
+    private doRequest(href:string):void{
         let     uri                   = href;
         const   queryString           = href.split('?')[1];
 
@@ -497,16 +493,15 @@ export default class Pjax{
             uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
         }
 
-        return new Promise((resolve, reject)=>{
-            request.open(reqeustMethod, uri, true);
-            request.timeout = timeout;
-            request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            request.setRequestHeader('X-PJAX', 'true');
-            request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
-            request.onload = resolve;
-            request.onerror = reject;
-            request.send();
-            this._request = request;
+        fetch(uri).then((response:Response)=>{
+            this.handleResponse(response);
+        }).catch((error:Error)=>{
+            if(this.options.debug){
+                console.group();
+                console.error('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
+                console.error(error);
+                console.groupEnd();
+            }
         });
     }
 
@@ -532,14 +527,8 @@ export default class Pjax{
         // Trigger the prefetch event
         trigger(document, ['pjax:prefetch']);
 
-        this.doRequest(href).then((e:ProgressEvent)=>{ 
-            this.handleResponse(e, 'prefetch');
-        }).catch((e:ErrorEvent)=>{
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
-                console.log(e);
-            }
-        });
+        this._request = 'prefetch';
+        this.doRequest(href);
     }
 
     /**
@@ -573,7 +562,7 @@ export default class Pjax{
             this.loadCachedContent();
         }
         // Check if Pjax is still waiting for the server to respond
-        else if(this._request !== null){
+        else if(this._response === null){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cconfirming prefetch for ${ href }`,'color:#f3ff35','color:#eee');
             }
@@ -584,14 +573,8 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cloading ${ href }`,'color:#f3ff35','color:#eee');
             }
-            this.doRequest(href).then((e:ProgressEvent)=>{
-                this.handleResponse(e, loadType);
-            }).catch((e:ErrorEvent)=>{
-                if(this.options.debug){
-                    console.log('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
-                    console.log(e);
-                }
-            });
+            this._request = loadType;
+            this.doRequest(href);
         }
     }
 
