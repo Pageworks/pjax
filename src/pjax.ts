@@ -96,6 +96,10 @@ export default class Pjax{
      */
     private loadUrl(href:string, loadType:string):void{
         
+        if(this._confirmed){
+            return;
+        }
+
         // Abort any current request
         this.abortRequest();
         this._cache = null;
@@ -136,21 +140,21 @@ export default class Pjax{
             }
         }
 
-        // Reset status trackers
-        this._cache             = null;
-        this._request           = null;
-        this._response          = null;
-        this._confirmed         = false;
-        this._cachedSwitch      = null;
-        this._isPushstate       = true;
-        this._scrollTo          = {x:0,y:0};
-
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
 
         // Handle status classes
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
+
+        // Reset status trackers
+        this._cache             = null;
+        this._request           = null;
+        this._response          = null;
+        this._cachedSwitch      = null;
+        this._isPushstate       = true;
+        this._scrollTo          = {x:0,y:0};
+        this._confirmed         = false;
     }
 
     /**
@@ -561,15 +565,8 @@ export default class Pjax{
             }
             this.loadCachedContent();
         }
-        // Check if Pjax is still waiting for the server to respond
-        else if(this._response === null){
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cconfirming prefetch for ${ href }`,'color:#f3ff35','color:#eee');
-            }
-            this._confirmed = true;
-        }
         // Pjax isn't prefetching, do the request
-        else{
+        else if(this._request !== 'prefetch'){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cloading ${ href }`,'color:#f3ff35','color:#eee');
             }

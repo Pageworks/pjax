@@ -67,6 +67,9 @@ var Pjax = (function () {
         parse_dom_1.default(document.body, this);
     };
     Pjax.prototype.loadUrl = function (href, loadType) {
+        if (this._confirmed) {
+            return;
+        }
         this.abortRequest();
         this._cache = null;
         this.handleLoad(href, loadType);
@@ -88,16 +91,16 @@ var Pjax = (function () {
                 state_manager_1.default.doReplace(this._response.url, document.title);
             }
         }
-        this._cache = null;
-        this._request = null;
-        this._response = null;
-        this._confirmed = false;
-        this._cachedSwitch = null;
-        this._isPushstate = true;
-        this._scrollTo = { x: 0, y: 0 };
         trigger_1.default(document, ['pjax:complete']);
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
+        this._cache = null;
+        this._request = null;
+        this._response = null;
+        this._cachedSwitch = null;
+        this._isPushstate = true;
+        this._scrollTo = { x: 0, y: 0 };
+        this._confirmed = false;
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
         for (var i = 0; i < switchQueue.length; i++) {
@@ -321,13 +324,7 @@ var Pjax = (function () {
             }
             this.loadCachedContent();
         }
-        else if (this._response === null) {
-            if (this.options.debug) {
-                console.log('%c[Pjax] ' + ("%cconfirming prefetch for " + href), 'color:#f3ff35', 'color:#eee');
-            }
-            this._confirmed = true;
-        }
-        else {
+        else if (this._request !== 'prefetch') {
             if (this.options.debug) {
                 console.log('%c[Pjax] ' + ("%cloading " + href), 'color:#f3ff35', 'color:#eee');
             }
@@ -342,7 +339,7 @@ var Pjax = (function () {
             trigger_1.default(document, ['pjax:cancel']);
         }
     };
-    Pjax.VERSION = '1.3.0';
+    Pjax.VERSION = '2.0.0';
     return Pjax;
 }());
 exports.default = Pjax;
