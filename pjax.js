@@ -320,11 +320,10 @@ var Pjax = (function () {
         var scriptsToAppend = [];
         newScripts.forEach(function (newScript) {
             var appendScript = true;
+            var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
             currentScripts.forEach(function (currentScript) {
-                if (newScript.src === currentScript.src
-                    || newScript.src === currentScript.dataset.source
-                    || "" + window.location.origin + window.location.pathname + newScript.src === currentScript.dataset.source
-                    || "" + window.location.origin + window.location.pathname + newScript.src === currentScript.src) {
+                var currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                if (newScriptFilename === currentScriptFilename) {
                     appendScript = false;
                 }
             });
@@ -336,7 +335,7 @@ var Pjax = (function () {
             scriptsToAppend.forEach(function (script) {
                 if (script.src === '') {
                     var newScript = document.createElement('script');
-                    newScript.dataset.source = _this._response.url;
+                    newScript.setAttribute('src', _this._response.url);
                     newScript.innerHTML = script.innerHTML;
                     document.body.appendChild(newScript);
                 }
@@ -352,7 +351,7 @@ var Pjax = (function () {
                                 case 2:
                                     responseText = _a.sent();
                                     newScript = document.createElement('script');
-                                    newScript.dataset.source = script.src;
+                                    newScript.setAttribute('src', script.src);
                                     newScript.innerHTML = responseText;
                                     document.body.appendChild(newScript);
                                     return [2];

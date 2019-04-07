@@ -498,14 +498,11 @@ export default class Pjax{
 
         newScripts.forEach((newScript)=>{
             let appendScript = true;
+            const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
 
             currentScripts.forEach((currentScript)=>{
-                if(
-                    newScript.src === currentScript.src
-                    || newScript.src === currentScript.dataset.source
-                    || `${ window.location.origin }${ window.location.pathname }${ newScript.src }` === currentScript.dataset.source
-                    || `${ window.location.origin }${ window.location.pathname }${ newScript.src }` === currentScript.src
-                ){
+                const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                if(newScriptFilename === currentScriptFilename){
                     appendScript = false;
                 }
             });
@@ -521,7 +518,7 @@ export default class Pjax{
                 // Append inline script elements
                 if(script.src === ''){
                     const newScript = document.createElement('script');
-                    newScript.dataset.source = this._response.url;
+                    newScript.setAttribute('src', this._response.url);
                     newScript.innerHTML = script.innerHTML;
                     document.body.appendChild(newScript);
                 }
@@ -531,7 +528,7 @@ export default class Pjax{
                         const response = await fetch(script.src);
                         const responseText = await response.text();
                         const newScript = document.createElement('script');
-                        newScript.dataset.source = script.src;
+                        newScript.setAttribute('src', script.src);
                         newScript.innerHTML = responseText;
                         document.body.appendChild(newScript);
                     })();
