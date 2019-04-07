@@ -94,10 +94,12 @@ var Pjax = (function () {
     }
     Pjax.prototype.init = function () {
         if (this.options.debug) {
+            console.group();
             console.log('%c[Pjax] ' + ("%cinitializing Pjax version " + Pjax.VERSION), 'color:#f3ff35', 'color:#eee');
             console.log('%c[Pjax] ' + "%cview Pjax documentation at http://papertrain.io/pjax", 'color:#f3ff35', 'color:#eee');
             console.log('%c[Pjax] ' + "%cloaded with the following options: ", 'color:#f3ff35', 'color:#eee');
             console.log(this.options);
+            console.groupEnd();
         }
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
@@ -254,6 +256,9 @@ var Pjax = (function () {
         if (this.options.importScripts) {
             this.handleScripts(this._cache.document);
         }
+        if (this.options.importCSS) {
+            this.handleCSS(this._cache.document);
+        }
         this.switchSelectors(this.options.selectors, this._cache.document);
     };
     Pjax.prototype.parseContent = function (responseText) {
@@ -293,6 +298,9 @@ var Pjax = (function () {
             state_manager_1.default.doReplace(window.location.href, document.title);
             if (this.options.importScripts) {
                 this.handleScripts(tempDocument);
+            }
+            if (this.options.importCSS) {
+                this.handleCSS(tempDocument);
             }
             this.switchSelectors(this.options.selectors, tempDocument);
         }
@@ -352,6 +360,48 @@ var Pjax = (function () {
                         });
                     }); })();
                 }
+            });
+        }
+    };
+    Pjax.prototype.handleCSS = function (newDocument) {
+        var _this = this;
+        var newStyles = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+        var currentStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+        var stylesToAppend = [];
+        newStyles.forEach(function (newStyle) {
+            var appendStyle = true;
+            var newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+            currentStyles.forEach(function (currentStyle) {
+                var currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                if (newStyleFile === currentStyleFile) {
+                    appendStyle = false;
+                }
+            });
+            if (appendStyle) {
+                stylesToAppend.push(newStyle);
+            }
+        });
+        if (stylesToAppend.length) {
+            stylesToAppend.forEach(function (style) {
+                (function () { return __awaiter(_this, void 0, void 0, function () {
+                    var response, responseText, newStyle;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4, fetch(style.href)];
+                            case 1:
+                                response = _a.sent();
+                                return [4, response.text()];
+                            case 2:
+                                responseText = _a.sent();
+                                newStyle = document.createElement('style');
+                                newStyle.setAttribute('rel', 'stylesheet');
+                                newStyle.setAttribute('href', style.href);
+                                newStyle.innerHTML = responseText;
+                                document.head.appendChild(newStyle);
+                                return [2];
+                        }
+                    });
+                }); })();
             });
         }
     };

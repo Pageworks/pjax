@@ -51,10 +51,12 @@ export default class Pjax{
 
     init(){
         if(this.options.debug){
+            console.group();
             console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
             console.log('%c[Pjax] '+`%cview Pjax documentation at http://papertrain.io/pjax`, 'color:#f3ff35','color:#eee');
             console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
             console.log(this.options);
+            console.groupEnd();
         }
 
         // Handle status classes for initial load
@@ -382,6 +384,10 @@ export default class Pjax{
             this.handleScripts(this._cache.document);
         }
 
+        if(this.options.importCSS){
+            this.handleCSS(this._cache.document);
+        }
+
         // Build the selector swapping queue
         this.switchSelectors(this.options.selectors, this._cache.document);
     }
@@ -459,6 +465,10 @@ export default class Pjax{
             if(this.options.importScripts){
                 this.handleScripts(tempDocument);
             }
+
+            if(this.options.importCSS){
+                this.handleCSS(tempDocument);
+            }
     
             // Swap the current page with the new page
             this.switchSelectors(this.options.selectors, tempDocument);
@@ -526,6 +536,47 @@ export default class Pjax{
                         document.body.appendChild(newScript);
                     })();
                 }
+            });
+        }
+    }
+
+    /**
+     * Append any `<style>` or `<link rel="stylesheet">` elements onto the current documents head
+     * @param newDocument - `HTMLDocument`
+     */
+    private handleCSS(newDocument:HTMLDocument):void{
+        const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+        const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+        const stylesToAppend:Array<HTMLLinkElement> = [];
+
+        newStyles.forEach((newStyle)=>{
+            let appendStyle = true;
+            const newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+
+            currentStyles.forEach((currentStyle)=>{
+                const currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                if(newStyleFile === currentStyleFile){
+                    appendStyle = false;
+                }
+            });
+
+            if(appendStyle){
+                stylesToAppend.push(newStyle);
+            }
+        });
+
+        // Append the new `link` styles to the head
+        if(stylesToAppend.length){
+            stylesToAppend.forEach((style)=>{
+                (async ()=>{
+                    const response = await fetch(style.href);
+                    const responseText = await response.text();
+                    const newStyle = document.createElement('style');
+                    newStyle.setAttribute('rel', 'stylesheet');
+                    newStyle.setAttribute('href', style.href);
+                    newStyle.innerHTML = responseText;
+                    document.head.appendChild(newStyle);
+                })();
             });
         }
     }
