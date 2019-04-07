@@ -7,6 +7,7 @@
 - Adds: new `importCSS` option to Pjax
 - Adds: when `importScripts` is set to `true` (default) any script elements will be fetched and appended to the `document.body`
 - Adds: when `importCSS` is set to `true` (default) any CSS (in `HEAD` or via `<link>`) will be fetched and appended
+- Adds: public static `load()` method to trigger a manual page load
 
 ### Removes
 
