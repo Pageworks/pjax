@@ -14,11 +14,12 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '1.3.0';
+    public static VERSION:string    = '2.0.0';
 
     public  options:        PJAX.IOptions;
     private _cache:         PJAX.ICacheObject;
-    private _request:       XMLHttpRequest;
+    private _request:       string;
+    private _response:      Response;
     private _confirmed:     boolean;
     private _cachedSwitch:  PJAX.ICachedSwitchOptions;
     private _scrollTo:      PJAX.IScrollPosition;
@@ -39,6 +40,7 @@ export default class Pjax{
         this._cache         = null;
         this.options        = parseOptions(options);
         this._request       = null;
+        this._response      = null;
         this._confirmed     = false;
         this._cachedSwitch  = null;
         this._scrollTo      = {x:0, y:0};
@@ -49,10 +51,12 @@ export default class Pjax{
 
     init(){
         if(this.options.debug){
+            console.group();
             console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
             console.log('%c[Pjax] '+`%cview Pjax documentation at http://papertrain.io/pjax`, 'color:#f3ff35','color:#eee');
             console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
             console.log(this.options);
+            console.groupEnd();
         }
 
         // Handle status classes for initial load
@@ -68,8 +72,21 @@ export default class Pjax{
             document.addEventListener('pjax:continue', this.handleContinue );
         }
 
+        document.addEventListener('pjax:load', this.handleManualLoad);
+
         // Attach listeners to initial link elements
         parseDOM(document.body, this);
+    }
+
+    /**
+     * Fired when the custom `pjax:load` event fires on the `document`
+     */
+    private handleManualLoad:EventListener = (e:CustomEvent)=>{
+        const uri = e.detail.uri;
+        if(this.options.debug){
+            console.log('%c[Pjax] '+`%cmanually loading ${ uri }`,'color:#f3ff35','color:#eee');
+        }
+        this.doRequest(uri);
     }
 
     /**
@@ -94,6 +111,10 @@ export default class Pjax{
      */
     private loadUrl(href:string, loadType:string):void{
         
+        if(this._confirmed){
+            return;
+        }
+
         // Abort any current request
         this.abortRequest();
         this._cache = null;
@@ -106,19 +127,11 @@ export default class Pjax{
      * Called when the current request needs to be aborted.
      */
     private abortRequest(): void{
-        
-        // Do nothing if there isn't already a request
-        if(this._request === null){
-            return;
-        }
-
-        // Abort the request if the server hasn't responded
-        if(this._request.readyState !== 4){
-            this._request.abort();
-        }
-
         // Reset the request
         this._request = null;
+
+        // Reset the response
+        this._response = null;
     }
 
     /**
@@ -136,19 +149,11 @@ export default class Pjax{
         // Handle the pushState
         if(this.options.history){
             if(this._isPushstate){
-                StateManager.doPush(this._request.responseURL, document.title);
+                StateManager.doPush(this._response.url, document.title);
             }else{
-                StateManager.doReplace(this._request.responseURL, document.title);
+                StateManager.doReplace(this._response.url, document.title);
             }
         }
-
-        // Reset status trackers
-        this._cache              = null;
-        this._request            = null;
-        this._confirmed          = false;
-        this._cachedSwitch       = null;
-        this._isPushstate        = true;
-        this._scrollTo           = {x:0,y:0};
 
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
@@ -156,6 +161,15 @@ export default class Pjax{
         // Handle status classes
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
+
+        // Reset status trackers
+        this._cache             = null;
+        this._request           = null;
+        this._response          = null;
+        this._cachedSwitch      = null;
+        this._isPushstate       = true;
+        this._scrollTo          = {x:0,y:0};
+        this._confirmed         = false;
     }
 
     /**
@@ -205,35 +219,102 @@ export default class Pjax{
     /**
      * Builds an array of `SwitchObjects` that need to be swapped based on the `options.selectors` array.
      * @param selectors - an array of container selectors that Pjax needs to swap
-     * @param tempDocument - the temporary `HTMLDocument` generated from the `XMLHttpRequest` response
-     * @param currentDocument - the current `HTMLDocument` element
+     * @param tempDocument - the temporary `HTMLDocument` generated from the fetch response
      */
-    private switchSelectors(selectors:string[], tempDocument:HTMLDocument, currentDocument:HTMLDocument): void{
+    private switchSelectors(selectors:string[], tempDocument:HTMLDocument): void{
         
         if(tempDocument === null){
             if(this.options.debug){
-                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this._cache !== null) ? this._cache.url : this._request.responseURL }`,'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%ctemporary document was null, telling the browser to load ${ (this._cache !== null) ? this._cache.url : this._response.url }`,'color:#f3ff35','color:#eee');
             }
 
             if(this._cache !== null){
                 this.lastChance(this._cache.url);
             }else{
-                this.lastChance(this._request.responseURL);
+                this.lastChance(this._response.url);
+            }
+
+            return;
+        }
+
+        // If `importScripts` is false check if Pjax needs to native load the page
+        if(!this.options.importScripts){
+
+            // Get the script elements from the temp document
+            const newScripts = Array.from(tempDocument.querySelectorAll('script'));
+            
+            if(newScripts.length){
+
+                // Get the script elements from the current document
+                const currentScripts = Array.from(document.querySelectorAll('script'));
+
+                newScripts.forEach((newScript)=>{
+                    
+                    // Assume the script is new
+                    let isNewScript = true;
+                    currentScripts.forEach((currentScript)=>{
+                        
+                        // Check if the new script is already on the document
+                        if(newScript.src === currentScript.src){
+                            isNewScript = false;
+                        }
+                    });
+
+                    // If the new script is not already on the document load the new page using the native browser functionality
+                    if(isNewScript){
+                        // Abort switch if one of the new containers contains a script element
+                        if(this.options.debug){
+                            console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
+                        }
+                        this.lastChance(this._response.url);
+                    }
+                });
+            }
+        }
+
+        // If `importsCSS` is false check if Pjax needs to native load the page
+        if(!this.options.importCSS){
+            // Get the script elements from the temp document
+            const newStylesheets = Array.from(tempDocument.querySelectorAll('link[rel="stylesheet"]'));
+            
+            if(newStylesheets.length){
+
+                // Get the script elements from the current document
+                const currentStylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+
+                newStylesheets.forEach((newStylesheet)=>{
+                    
+                    // Assume the sheet is new
+                    let isNewSheet = true;
+                    currentStylesheets.forEach((currentStylesheet)=>{
+                        
+                        // Check if the new script is already on the document
+                        if(newStylesheet.getAttribute('href') === currentStylesheet.getAttribute('href')){
+                            isNewSheet = false;
+                        }
+                    });
+
+                    // If the new script is not already on the document load the new page using the native browser functionality
+                    if(isNewSheet){
+                        // Abort switch if one of the new containers contains a script element
+                        if(this.options.debug){
+                            console.log('%c[Pjax] '+`%cthe new page contains new stylesheets`,'color:#f3ff35','color:#eee');
+                        }
+                        this.lastChance(this._response.url);
+                    }
+                });
             }
         }
 
         // Build a queue of containers to swap
         const switchQueue:Array<PJAX.ISwitchObject> = [];
 
-        // Track if the new page contains additional `HTMLScriptElement`
-        let contiansScripts = false;
-
         // Loop though all the selector strings
         for(let i = 0; i < selectors.length; i++){
             
             // Grab the selector containers from the temporay and current documents
             const newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
-            const currentContainers = Array.from(currentDocument.querySelectorAll(selectors[i]));
+            const currentContainers = Array.from(document.querySelectorAll(selectors[i]));
 
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cswapping content from ${ selectors[i] }`,'color:#f3ff35','color:#eee');
@@ -247,19 +328,13 @@ export default class Pjax{
                 }
 
                 // If a document is missing a container natively load the page
-                this.lastChance(this._request.responseURL);
+                this.lastChance(this._response.url);
 
                 return;
             }
 
             // Loop though all the new containers
             for(let k = 0; k < newContainers.length; k++){
-                
-                // Check for any scripts
-                const scripts = Array.from(newContainers[k].querySelectorAll('script'));
-                if(scripts.length > 0){
-                    contiansScripts = true;
-                }
 
                 // Get the current container object
                 const newContainer = newContainers[k];
@@ -281,16 +356,7 @@ export default class Pjax{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%ccouldn't find anything to switch`,'color:#f3ff35','color:#eee');
             }
-            this.lastChance(this._request.responseURL);
-            return;
-        }
-
-        // Abort switch if one of the new containers contains a script element
-        if(contiansScripts){
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
-            }
-            this.lastChance(this._request.responseURL);
+            this.lastChance(this._response.url);
             return;
         }
         
@@ -349,8 +415,16 @@ export default class Pjax{
 
         StateManager.doReplace(window.location.href, document.title);
 
+        if(this.options.importScripts){
+            this.handleScripts(this._cache.document);
+        }
+
+        if(this.options.importCSS){
+            this.handleCSS(this._cache.document);
+        }
+
         // Build the selector swapping queue
-        this.switchSelectors(this.options.selectors, this._cache.document, document);
+        this.switchSelectors(this.options.selectors, this._cache.document);
     }
 
     /**
@@ -361,9 +435,9 @@ export default class Pjax{
     private parseContent(responseText:string): HTMLDocument{        
         const tempDocument:HTMLDocument = document.implementation.createHTMLDocument('pjax-temp-document');
 
-        // Use regex to verify the response is a `HTMLDocument`
-        const htmlRegex = /<html[^>]+>/gi;
-        const matches = responseText.match(htmlRegex);
+        const contentType = this._response.headers.get('Content-Type');
+        const htmlRegex = /text\/html/gi;
+        const matches = contentType.match(htmlRegex);
         
         // Check that the regex match was successful
         if(matches !== null){
@@ -408,8 +482,8 @@ export default class Pjax{
     }
 
     /**
-     * Handles building the new `HTMLDocument` generated by the `XMLHttpRequest` response.
-     * @param responseText - `responseText` from the `XMLHttpRequest` response
+     * Handles building the new `HTMLDocument`
+     * @param responseText - `responseText`
      */
     private loadContent(responseText:string): void{
 
@@ -422,10 +496,17 @@ export default class Pjax{
             clearActive();
 
             StateManager.doReplace(window.location.href, document.title);
+
+            if(this.options.importScripts){
+                this.handleScripts(tempDocument);
+            }
+
+            if(this.options.importCSS){
+                this.handleCSS(tempDocument);
+            }
     
             // Swap the current page with the new page
-            this.switchSelectors(this.options.selectors, tempDocument, document);
-
+            this.switchSelectors(this.options.selectors, tempDocument);
         }else{
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cresponse wasn't an HTML document`,'color:#f3ff35','color:#eee');
@@ -435,60 +516,160 @@ export default class Pjax{
             trigger(document, ['pjax:error']);
 
             // Have the browser load the page natively
-            this.lastChance(this._request.responseURL);
+            this.lastChance(this._response.url);
 
             return;
         }
     }
 
     /**
-     * Handles the `XMLHttpRequest` response based on the load type.
-     * @param e - `ProgressEvent` provided by the `XMLHttpRequest`
-     * @param loadType - informs the response handler what type of load is being preformed (eg: reload)
+     * Append any `<script>` elements onto the current `HTMLDocument`
+     * @param newDocument - `HTMLDocument`
      */
-    private handleResponse(e:ProgressEvent, loadType:string): void{
+    private handleScripts(newDocument:HTMLDocument):void{
+
+        if(newDocument instanceof HTMLDocument){
+            const newScripts = Array.from(newDocument.querySelectorAll('script'));
+            const currentScripts = Array.from(document.querySelectorAll('script'));
+            const scriptsToAppend:Array<HTMLScriptElement> = [];
+
+            newScripts.forEach((newScript)=>{
+                let appendScript = true;
+                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+
+                currentScripts.forEach((currentScript)=>{
+                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    if(newScriptFilename === currentScriptFilename){
+                        appendScript = false;
+                    }
+                });
+
+                if(appendScript){
+                    scriptsToAppend.push(newScript);
+                }
+            });
+
+            // Append the new scripts to the body
+            if(scriptsToAppend.length){
+                scriptsToAppend.forEach((script)=>{
+                    // Append inline script elements
+                    if(script.src === ''){
+                        const newScript = document.createElement('script');
+                        newScript.setAttribute('src', this._response.url);
+                        newScript.innerHTML = script.innerHTML;
+                        document.body.appendChild(newScript);
+                    }
+                    // Append script elements that have a source
+                    else{
+                        (async ()=>{
+                            const response = await fetch(script.src);
+                            const responseText = await response.text();
+                            const newScript = document.createElement('script');
+                            newScript.setAttribute('src', script.src);
+                            newScript.innerHTML = responseText;
+                            document.body.appendChild(newScript);
+                        })();
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Append any `<style>` or `<link rel="stylesheet">` elements onto the current documents head
+     * @param newDocument - `HTMLDocument`
+     */
+    private handleCSS(newDocument:HTMLDocument):void{
+        
+        if(newDocument instanceof HTMLDocument){
+            const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+            const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+            const stylesToAppend:Array<HTMLLinkElement> = [];
+
+            newStyles.forEach((newStyle)=>{
+                let appendStyle = true;
+                const newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+
+                currentStyles.forEach((currentStyle)=>{
+                    const currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                    if(newStyleFile === currentStyleFile){
+                        appendStyle = false;
+                    }
+                });
+
+                if(appendStyle){
+                    stylesToAppend.push(newStyle);
+                }
+            });
+
+            // Append the new `link` styles to the head
+            if(stylesToAppend.length){
+                stylesToAppend.forEach((style)=>{
+                    (async ()=>{
+                        const response = await fetch(style.href);
+                        const responseText = await response.text();
+                        const newStyle = document.createElement('style');
+                        newStyle.setAttribute('rel', 'stylesheet');
+                        newStyle.setAttribute('href', style.href);
+                        newStyle.innerHTML = responseText;
+                        document.head.appendChild(newStyle);
+                    })();
+                });
+            }
+        }
+    }
+
+    /**
+     * Handles the fetch `Response` based on the load type.
+     * @param response - `Reponse` object provided by the Fetch API
+     * @param loadType - informs the response handler what type of load is being preformed (eg: reload)
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Response
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+     */
+    private handleResponse(response:Response): void{
         if(this.options.debug){
-            console.log('%c[Pjax] '+`%cXML Http Request status: ${ this._request.status }`,'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cRequest status: ${ response.status }`,'color:#f3ff35','color:#eee');
         }
         
         // Check if the server response is valid
-        if(this._request.responseText === null){
+        if(!response.ok){
             trigger(document, ['pjax:error']);
             return;
         }
 
-        // Handle the response based on the load type provided
-        switch(loadType){
-            case 'prefetch':
-                if(this._confirmed){
-                    this.loadContent(this._request.responseText);
-                }else{
-                    this.cacheContent(this._request.responseText, this._request.status, this._request.responseURL);
-                }
-                break;
-            case 'popstate':
-                this._isPushstate = false;
-                this.loadContent(this._request.responseText);
-                break;
-            case 'reload':
-                this._isPushstate = false;
-                this.loadContent(this._request.responseText);
-                break;
-            default:
-                this.loadContent(this._request.responseText);
-                break;
-        }
+        this._response = response;
+
+        response.text().then((responseText:string)=>{
+            // Handle the response based on the load type provided
+            switch(this._request){
+                case 'prefetch':
+                    if(this._confirmed){
+                        this.loadContent(responseText);
+                    }else{
+                        this.cacheContent(responseText, this._response.status, this._response.url);
+                    }
+                    break;
+                case 'popstate':
+                    this._isPushstate = false;
+                    this.loadContent(responseText);
+                    break;
+                case 'reload':
+                    this._isPushstate = false;
+                    this.loadContent(responseText);
+                    break;
+                default:
+                    this.loadContent(responseText);
+                    break;
+            }
+        });
     }
 
     /**
-     * Build and send the `XMLHttpRequest` for the new page.
+     * Request the new page using the `fetch` api.
+     * @see https://fetch.spec.whatwg.org/
      * @param href - URI of the reqeusted page
-     * @returns `ProgressEvent` as a `Promise`
      */
-    private doRequest(href:string): Promise<ProgressEvent>{
-        const   reqeustMethod:string  = 'GET';
-        const   timeout               = this.options.timeout || 0;
-        const   request               = new XMLHttpRequest();
+    private doRequest(href:string):void{
         let     uri                   = href;
         const   queryString           = href.split('?')[1];
 
@@ -497,16 +678,15 @@ export default class Pjax{
             uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
         }
 
-        return new Promise((resolve, reject)=>{
-            request.open(reqeustMethod, uri, true);
-            request.timeout = timeout;
-            request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            request.setRequestHeader('X-PJAX', 'true');
-            request.setRequestHeader('X-PJAX-Selectors', JSON.stringify(this.options.selectors));
-            request.onload = resolve;
-            request.onerror = reject;
-            request.send();
-            this._request = request;
+        fetch(uri).then((response:Response)=>{
+            this.handleResponse(response);
+        }).catch((error:Error)=>{
+            if(this.options.debug){
+                console.group();
+                console.error('%c[Pjax] '+`%cFetch error:`,'color:#f3ff35','color:#eee');
+                console.error(error);
+                console.groupEnd();
+            }
         });
     }
 
@@ -532,14 +712,8 @@ export default class Pjax{
         // Trigger the prefetch event
         trigger(document, ['pjax:prefetch']);
 
-        this.doRequest(href).then((e:ProgressEvent)=>{ 
-            this.handleResponse(e, 'prefetch');
-        }).catch((e:ErrorEvent)=>{
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
-                console.log(e);
-            }
-        });
+        this._request = 'prefetch';
+        this.doRequest(href);
     }
 
     /**
@@ -572,26 +746,13 @@ export default class Pjax{
             }
             this.loadCachedContent();
         }
-        // Check if Pjax is still waiting for the server to respond
-        else if(this._request !== null){
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cconfirming prefetch for ${ href }`,'color:#f3ff35','color:#eee');
-            }
-            this._confirmed = true;
-        }
         // Pjax isn't prefetching, do the request
-        else{
+        else if(this._request !== 'prefetch'){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%cloading ${ href }`,'color:#f3ff35','color:#eee');
             }
-            this.doRequest(href).then((e:ProgressEvent)=>{
-                this.handleResponse(e, loadType);
-            }).catch((e:ErrorEvent)=>{
-                if(this.options.debug){
-                    console.log('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
-                    console.log(e);
-                }
-            });
+            this._request = loadType;
+            this.doRequest(href);
         }
     }
 
@@ -612,5 +773,18 @@ export default class Pjax{
             // Trigger the cancel event
             trigger(document, ['pjax:cancel']);
         }
+    }
+
+    /**
+     * Manually triggers Pjax to load the requested page.
+     * @param url - `string`
+     */
+    public static load(url:string):void{
+        const customEvent = new CustomEvent('pjax:load', {
+            detail:{
+                uri: url
+            }
+        });
+        document.dispatchEvent(customEvent);
     }
 }

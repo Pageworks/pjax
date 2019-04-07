@@ -4,6 +4,7 @@ export as namespace Pjax;
 
 declare class Pjax {
     constructor(options?: Partial<Pjax.IOptions>);
+    public static load: (url:string)=>void;
 }
 
 declare namespace Pjax{
@@ -13,10 +14,11 @@ declare namespace Pjax{
         history?:                       boolean;
         cacheBust?:                     boolean;
         debug?:                         boolean;
-        timeout?:                       number;
         titleSwitch?:                   boolean;
         customTransitions?:             boolean;
         customPreventionAttributes?:    Array<string>;
+        importScripts?:                 boolean;
+        importCSS?:                     boolean;
     }
 
     export interface IScrollPosition{

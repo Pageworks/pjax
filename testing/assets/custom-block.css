@@ -1,0 +1,9 @@
+.c-custom-block{
+    display: inline-block;
+    width: 256px;
+    height: 158px;
+    border-width: 4px;
+    box-shadow: 0 2px 4px rgba(41,41,41,0.1);
+    background-color: #ffffff;
+    margin: 16px;
+}

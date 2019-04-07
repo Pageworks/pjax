@@ -1,13 +1,11 @@
 # Pjax
-Pjax enables fast and easy AJAX navigation on any website using `pushState` and `XHR`. No more full page reloads, no more multipul HTTP request, and written entirely in TypeScript.
+Pjax enables fast and easy AJAX navigation on any website using `pushState` and `fetch`. No more full page reloads, no more multipul HTTP request, and written entirely in TypeScript.
 
 ## Installation
-Add Pjax as a dependency to your `package.json` with `npm i --save fuel-pjax`. Once the package is installed import the package with `import Pjax from 'fuel-pjax'`. Then simple instantiate a new instance of Pjax with `new Pjax()`.
+Add Pjax as a dependency to your `package.json` with `npm i --save @codewithkyle/pjax`. Once the package is installed import the package with `import Pjax from '@codewithkyle/pjax'`. Then simple instantiate a new instance of Pjax with `new Pjax()`.
 
 ## How Pjax Works
-[Watch the Introduction to Pjax Video](https://youtu.be/2bz_lrk--NE)
-
-Pjax loads pages using an `XMLHttpRequest` and updates the browser's current URL using a `window.pushState()` all without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user triggers an `onmouseleave` event the `XHR` request is canceled. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
+Pjax loads pages using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and updates the browser's current URL using a `window.pushState()` all without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
 
 Under the hood Pjax is **one HTTP request** with a `window.pushState()`.
 
@@ -59,7 +57,7 @@ Start by setting up the basic `index.html` file for your website.
 
 In the main/application script for your project you can being using Pjax with the following:
 ```
-import Pjax from 'fuel-pjax';
+import Pjax from '@codewithkyle/pjax';
 
 const pjax = new Pjax({
     debug: true
@@ -77,10 +75,11 @@ You can define custom Pjax options using the following:
 | history                      | boolean                   | `true`               |
 | cacheBust                    | boolean                   | `false`              |
 | debug                        | boolean                   | `false`              |
-| timeout                      | number                    | `0`                  |
 | titleSwitch                  | boolean                   | `true`               |
 | customTransitions            | boolean                   | `false`              |
 | customPreventionAttributes   | string[]                  | `[]`                 |
+| importScripts                | boolean                   | `true`               |
+| importCSS                    | boolean                   | `true`               |
 
 `elements` is the base element users should click on to trigger a page transition.
 
@@ -92,13 +91,15 @@ When `history` is true Pjax will use `window.history.pushState()` to manipulate 
 
 `debug` will tell Pjax to display all debug information.
 
-`timeout` is the about of time allowed before Pjax time's out an `XMLHttpRequest`
-
 `titleSwitch` when true will swap out the documents title during page transitions.
 
 `customTransitions` when true Pjax won't actually switch out the content until the developers application sends a custom `pjax:continue` event.
 
 `customPreventionAttributes` is an array of custom element attributes that Pjax will look for when attaching event listeners. The default prevention attribute that is `prevent-pjax` however you can define additional attributes. For example, if you are using a custom lightcase modal libary you could tell Pjax **not** to hijack the events attached to any element that has a valid `href` attribute when the element also has a `lightcase` attribute.
+
+When `importScripts` is `true` Pjax will dynamically fetch and append all `<script>` elements. Elements with a valid `src` will be appended once, elements that contain JavaScript will be re-appended every time.
+
+When `importCSS` is `true` Pjax will dynamically fetch and append custom `<style>` elements to the documents `<head>`. Only `<link>` elements labeled as `rel="stylesheet"` with a valid `href` attribute will be appended. Custom styles will only be appended once.
 
 ### Pjax Events
 
@@ -122,3 +123,6 @@ HTML.dom-is-loading *{
     cursor: wait !important;
 }
 ```
+
+### Static Methods
+Pjax allows developers to manually trigger a page load by using the public static method `Pjax.load(url)`
