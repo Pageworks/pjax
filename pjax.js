@@ -157,7 +157,6 @@ var Pjax = (function () {
                 this.lastChance(this._response.url);
             }
         }
-        var switchQueue = [];
         if (!this.options.importScripts) {
             var newScripts = Array.from(tempDocument.querySelectorAll('script'));
             if (newScripts.length) {
@@ -179,6 +178,7 @@ var Pjax = (function () {
                 });
             }
         }
+        var switchQueue = [];
         for (var i = 0; i < selectors.length; i++) {
             var newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
             var currentContainers = Array.from(document.querySelectorAll(selectors[i]));

@@ -204,7 +204,7 @@ export default class Pjax{
     /**
      * Builds an array of `SwitchObjects` that need to be swapped based on the `options.selectors` array.
      * @param selectors - an array of container selectors that Pjax needs to swap
-     * @param tempDocument - the temporary `HTMLDocument` generated from the `XMLHttpRequest` response
+     * @param tempDocument - the temporary `HTMLDocument` generated from the fetch response
      */
     private switchSelectors(selectors:string[], tempDocument:HTMLDocument): void{
         
@@ -220,9 +220,7 @@ export default class Pjax{
             }
         }
 
-        // Build a queue of containers to swap
-        const switchQueue:Array<PJAX.ISwitchObject> = [];
-
+        // If `importsScripts` is false check if Pjax needs to native load the page
         if(!this.options.importScripts){
 
             // Get the script elements from the temp document
@@ -245,7 +243,7 @@ export default class Pjax{
                         }
                     });
 
-                    // If the new script is not already on the document load the new page using the navive browser functionality
+                    // If the new script is not already on the document load the new page using the native browser functionality
                     if(isNewScript){
                         // Abort switch if one of the new containers contains a script element
                         if(this.options.debug){
@@ -257,6 +255,9 @@ export default class Pjax{
                 });
             }
         }
+
+        // Build a queue of containers to swap
+        const switchQueue:Array<PJAX.ISwitchObject> = [];
 
         // Loop though all the selector strings
         for(let i = 0; i < selectors.length; i++){

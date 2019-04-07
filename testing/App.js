@@ -4,7 +4,7 @@ import Pjax from '../pjax';
  * IIFE for starting Pjax on load
  */
 (function(){
-    var pjax = new Pjax({ debug:true, importScripts: false });
+    var pjax = new Pjax({ debug:true });
 
     var prefetchLight = document.body.querySelector('.js-prefetch');
     var loadLight = document.body.querySelector('.js-load');
