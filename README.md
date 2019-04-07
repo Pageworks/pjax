@@ -126,3 +126,6 @@ HTML.dom-is-loading *{
     cursor: wait !important;
 }
 ```
+
+### Static Methods
+Pjax allows developers to manually trigger a page load by using the public static method `Pjax.load(url)`
