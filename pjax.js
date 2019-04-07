@@ -145,6 +145,7 @@ var Pjax = (function () {
         this.finalize();
     };
     Pjax.prototype.switchSelectors = function (selectors, tempDocument) {
+        var _this = this;
         if (tempDocument === null) {
             if (this.options.debug) {
                 console.log('%c[Pjax] ' + ("%ctemporary document was null, telling the browser to load " + ((this._cache !== null) ? this._cache.url : this._response.url)), 'color:#f3ff35', 'color:#eee');
@@ -157,7 +158,27 @@ var Pjax = (function () {
             }
         }
         var switchQueue = [];
-        var contiansScripts = false;
+        if (!this.options.importScripts) {
+            var newScripts = Array.from(tempDocument.querySelectorAll('script'));
+            if (newScripts.length) {
+                var currentScripts_1 = Array.from(document.querySelectorAll('script'));
+                newScripts.forEach(function (newScript) {
+                    var isNewScript = true;
+                    currentScripts_1.forEach(function (currentScript) {
+                        if (newScript.src === currentScript.src) {
+                            isNewScript = false;
+                        }
+                    });
+                    if (isNewScript) {
+                        if (_this.options.debug) {
+                            console.log('%c[Pjax] ' + "%cthe new page contains scripts", 'color:#f3ff35', 'color:#eee');
+                        }
+                        _this.lastChance(_this._response.url);
+                        return;
+                    }
+                });
+            }
+        }
         for (var i = 0; i < selectors.length; i++) {
             var newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
             var currentContainers = Array.from(document.querySelectorAll(selectors[i]));
@@ -172,12 +193,6 @@ var Pjax = (function () {
                 return;
             }
             for (var k = 0; k < newContainers.length; k++) {
-                if (!this.options.importScripts) {
-                    var scripts = Array.from(newContainers[k].querySelectorAll('script'));
-                    if (scripts.length > 0) {
-                        contiansScripts = true;
-                    }
-                }
                 var newContainer = newContainers[k];
                 var currentContainer = currentContainers[k];
                 var switchObject = {
@@ -190,13 +205,6 @@ var Pjax = (function () {
         if (switchQueue.length === 0) {
             if (this.options.debug) {
                 console.log('%c[Pjax] ' + "%ccouldn't find anything to switch", 'color:#f3ff35', 'color:#eee');
-            }
-            this.lastChance(this._response.url);
-            return;
-        }
-        if (contiansScripts) {
-            if (this.options.debug) {
-                console.log('%c[Pjax] ' + "%cthe new page contains scripts", 'color:#f3ff35', 'color:#eee');
             }
             this.lastChance(this._response.url);
             return;

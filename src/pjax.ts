@@ -223,8 +223,40 @@ export default class Pjax{
         // Build a queue of containers to swap
         const switchQueue:Array<PJAX.ISwitchObject> = [];
 
-        // Track if the new page contains additional `HTMLScriptElement`
-        let contiansScripts = false;
+        if(!this.options.importScripts){
+
+            // Get the script elements from the temp document
+            const newScripts = Array.from(tempDocument.querySelectorAll('script'));
+            
+            if(newScripts.length){
+
+                // Get the script elements from the current document
+                const currentScripts = Array.from(document.querySelectorAll('script'));
+
+                newScripts.forEach((newScript)=>{
+                    
+                    // Assume the script is new
+                    let isNewScript = true;
+                    currentScripts.forEach((currentScript)=>{
+                        
+                        // Check if the new script is already on the document
+                        if(newScript.src === currentScript.src){
+                            isNewScript = false;
+                        }
+                    });
+
+                    // If the new script is not already on the document load the new page using the navive browser functionality
+                    if(isNewScript){
+                        // Abort switch if one of the new containers contains a script element
+                        if(this.options.debug){
+                            console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
+                        }
+                        this.lastChance(this._response.url);
+                        return;
+                    }
+                });
+            }
+        }
 
         // Loop though all the selector strings
         for(let i = 0; i < selectors.length; i++){
@@ -253,14 +285,6 @@ export default class Pjax{
             // Loop though all the new containers
             for(let k = 0; k < newContainers.length; k++){
 
-                if(!this.options.importScripts){
-                    // Check for any scripts
-                    const scripts = Array.from(newContainers[k].querySelectorAll('script'));
-                    if(scripts.length > 0){
-                        contiansScripts = true;
-                    }
-                }
-
                 // Get the current container object
                 const newContainer = newContainers[k];
                 const currentContainer = currentContainers[k];
@@ -280,15 +304,6 @@ export default class Pjax{
         if(switchQueue.length === 0){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%ccouldn't find anything to switch`,'color:#f3ff35','color:#eee');
-            }
-            this.lastChance(this._response.url);
-            return;
-        }
-
-        // Abort switch if one of the new containers contains a script element
-        if(contiansScripts){
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
             }
             this.lastChance(this._response.url);
             return;
@@ -461,7 +476,8 @@ export default class Pjax{
             let appendScript = true;
 
             currentScripts.forEach((currentScript)=>{
-                if(    newScript.src === currentScript.src
+                if(
+                    newScript.src === currentScript.src
                     || newScript.src === currentScript.dataset.source
                     || `${ window.location.origin }${ window.location.pathname }${ newScript.src }` === currentScript.dataset.source
                     || `${ window.location.origin }${ window.location.pathname }${ newScript.src }` === currentScript.src
@@ -475,14 +491,18 @@ export default class Pjax{
             }
         });
 
+        // Append the new scripts to the body
         if(scriptsToAppend.length){
             scriptsToAppend.forEach((script)=>{
+                // Append inline script elements
                 if(script.src === ''){
                     const newScript = document.createElement('script');
                     newScript.dataset.source = this._response.url;
                     newScript.innerHTML = script.innerHTML;
                     document.body.appendChild(newScript);
-                }else{
+                }
+                // Append script elements that have a source
+                else{
                     (async ()=>{
                         const response = await fetch(script.src);
                         const responseText = await response.text();
@@ -497,9 +517,11 @@ export default class Pjax{
     }
 
     /**
-     * Handles the `XMLHttpRequest` response based on the load type.
-     * @param e - `ProgressEvent` provided by the `XMLHttpRequest`
+     * Handles the fetch `Response` based on the load type.
+     * @param response - `Reponse` object provided by the Fetch API
      * @param loadType - informs the response handler what type of load is being preformed (eg: reload)
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Response
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
      */
     private handleResponse(response:Response): void{
         if(this.options.debug){
