@@ -183,7 +183,26 @@ var Pjax = (function () {
                             console.log('%c[Pjax] ' + "%cthe new page contains scripts", 'color:#f3ff35', 'color:#eee');
                         }
                         _this.lastChance(_this._response.url);
-                        return;
+                    }
+                });
+            }
+        }
+        if (!this.options.importCSS) {
+            var newStylesheets = Array.from(tempDocument.querySelectorAll('link[rel="stylesheet"]'));
+            if (newStylesheets.length) {
+                var currentStylesheets_1 = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                newStylesheets.forEach(function (newStylesheet) {
+                    var isNewSheet = true;
+                    currentStylesheets_1.forEach(function (currentStylesheet) {
+                        if (newStylesheet.getAttribute('href') === currentStylesheet.getAttribute('href')) {
+                            isNewSheet = false;
+                        }
+                    });
+                    if (isNewSheet) {
+                        if (_this.options.debug) {
+                            console.log('%c[Pjax] ' + "%cthe new page contains new stylesheets", 'color:#f3ff35', 'color:#eee');
+                        }
+                        _this.lastChance(_this._response.url);
                     }
                 });
             }

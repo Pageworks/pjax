@@ -235,7 +235,7 @@ export default class Pjax{
             }
         }
 
-        // If `importsScripts` is false check if Pjax needs to native load the page
+        // If `importScripts` is false check if Pjax needs to native load the page
         if(!this.options.importScripts){
 
             // Get the script elements from the temp document
@@ -265,7 +265,40 @@ export default class Pjax{
                             console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
                         }
                         this.lastChance(this._response.url);
-                        return;
+                    }
+                });
+            }
+        }
+
+        // If `importsCSS` is false check if Pjax needs to native load the page
+        if(!this.options.importCSS){
+            // Get the script elements from the temp document
+            const newStylesheets = Array.from(tempDocument.querySelectorAll('link[rel="stylesheet"]'));
+            
+            if(newStylesheets.length){
+
+                // Get the script elements from the current document
+                const currentStylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+
+                newStylesheets.forEach((newStylesheet)=>{
+                    
+                    // Assume the sheet is new
+                    let isNewSheet = true;
+                    currentStylesheets.forEach((currentStylesheet)=>{
+                        
+                        // Check if the new script is already on the document
+                        if(newStylesheet.getAttribute('href') === currentStylesheet.getAttribute('href')){
+                            isNewSheet = false;
+                        }
+                    });
+
+                    // If the new script is not already on the document load the new page using the native browser functionality
+                    if(isNewSheet){
+                        // Abort switch if one of the new containers contains a script element
+                        if(this.options.debug){
+                            console.log('%c[Pjax] '+`%cthe new page contains new stylesheets`,'color:#f3ff35','color:#eee');
+                        }
+                        this.lastChance(this._response.url);
                     }
                 });
             }
