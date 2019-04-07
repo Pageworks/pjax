@@ -14,7 +14,6 @@ declare namespace Pjax{
         history?:                       boolean;
         cacheBust?:                     boolean;
         debug?:                         boolean;
-        timeout?:                       number;
         titleSwitch?:                   boolean;
         customTransitions?:             boolean;
         customPreventionAttributes?:    Array<string>;

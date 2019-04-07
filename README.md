@@ -75,7 +75,6 @@ You can define custom Pjax options using the following:
 | history                      | boolean                   | `true`               |
 | cacheBust                    | boolean                   | `false`              |
 | debug                        | boolean                   | `false`              |
-| timeout                      | number                    | `0`                  |
 | titleSwitch                  | boolean                   | `true`               |
 | customTransitions            | boolean                   | `false`              |
 | customPreventionAttributes   | string[]                  | `[]`                 |
@@ -91,8 +90,6 @@ When `history` is true Pjax will use `window.history.pushState()` to manipulate 
 `cacheBust` will add a `GET` param to all request forcing the browser to perform the request instead of using a cached version of the page.
 
 `debug` will tell Pjax to display all debug information.
-
-`timeout` is the about of time allowed before Pjax time's out an `XMLHttpRequest`
 
 `titleSwitch` when true will swap out the documents title during page transitions.
 

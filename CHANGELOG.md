@@ -12,6 +12,7 @@
 ### Removes
 
 - Removes: no longer calls `lastChance()` when the new document contains `<script>` elements
+- Removes: `timeout` option from Pjax since we can't abort fetch
 
 # 1.3.0 - 2019-03-27
 
