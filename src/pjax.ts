@@ -233,6 +233,8 @@ export default class Pjax{
             }else{
                 this.lastChance(this._response.url);
             }
+
+            return;
         }
 
         // If `importScripts` is false check if Pjax needs to native load the page
@@ -525,48 +527,51 @@ export default class Pjax{
      * @param newDocument - `HTMLDocument`
      */
     private handleScripts(newDocument:HTMLDocument):void{
-        const newScripts = Array.from(newDocument.querySelectorAll('script'));
-        const currentScripts = Array.from(document.querySelectorAll('script'));
-        const scriptsToAppend:Array<HTMLScriptElement> = [];
 
-        newScripts.forEach((newScript)=>{
-            let appendScript = true;
-            const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+        if(newDocument instanceof HTMLDocument){
+            const newScripts = Array.from(newDocument.querySelectorAll('script'));
+            const currentScripts = Array.from(document.querySelectorAll('script'));
+            const scriptsToAppend:Array<HTMLScriptElement> = [];
 
-            currentScripts.forEach((currentScript)=>{
-                const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
-                if(newScriptFilename === currentScriptFilename){
-                    appendScript = false;
+            newScripts.forEach((newScript)=>{
+                let appendScript = true;
+                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+
+                currentScripts.forEach((currentScript)=>{
+                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    if(newScriptFilename === currentScriptFilename){
+                        appendScript = false;
+                    }
+                });
+
+                if(appendScript){
+                    scriptsToAppend.push(newScript);
                 }
             });
 
-            if(appendScript){
-                scriptsToAppend.push(newScript);
-            }
-        });
-
-        // Append the new scripts to the body
-        if(scriptsToAppend.length){
-            scriptsToAppend.forEach((script)=>{
-                // Append inline script elements
-                if(script.src === ''){
-                    const newScript = document.createElement('script');
-                    newScript.setAttribute('src', this._response.url);
-                    newScript.innerHTML = script.innerHTML;
-                    document.body.appendChild(newScript);
-                }
-                // Append script elements that have a source
-                else{
-                    (async ()=>{
-                        const response = await fetch(script.src);
-                        const responseText = await response.text();
+            // Append the new scripts to the body
+            if(scriptsToAppend.length){
+                scriptsToAppend.forEach((script)=>{
+                    // Append inline script elements
+                    if(script.src === ''){
                         const newScript = document.createElement('script');
-                        newScript.setAttribute('src', script.src);
-                        newScript.innerHTML = responseText;
+                        newScript.setAttribute('src', this._response.url);
+                        newScript.innerHTML = script.innerHTML;
                         document.body.appendChild(newScript);
-                    })();
-                }
-            });
+                    }
+                    // Append script elements that have a source
+                    else{
+                        (async ()=>{
+                            const response = await fetch(script.src);
+                            const responseText = await response.text();
+                            const newScript = document.createElement('script');
+                            newScript.setAttribute('src', script.src);
+                            newScript.innerHTML = responseText;
+                            document.body.appendChild(newScript);
+                        })();
+                    }
+                });
+            }
         }
     }
 
@@ -575,39 +580,42 @@ export default class Pjax{
      * @param newDocument - `HTMLDocument`
      */
     private handleCSS(newDocument:HTMLDocument):void{
-        const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
-        const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
-        const stylesToAppend:Array<HTMLLinkElement> = [];
+        
+        if(newDocument instanceof HTMLDocument){
+            const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+            const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+            const stylesToAppend:Array<HTMLLinkElement> = [];
 
-        newStyles.forEach((newStyle)=>{
-            let appendStyle = true;
-            const newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+            newStyles.forEach((newStyle)=>{
+                let appendStyle = true;
+                const newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
 
-            currentStyles.forEach((currentStyle)=>{
-                const currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
-                if(newStyleFile === currentStyleFile){
-                    appendStyle = false;
+                currentStyles.forEach((currentStyle)=>{
+                    const currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                    if(newStyleFile === currentStyleFile){
+                        appendStyle = false;
+                    }
+                });
+
+                if(appendStyle){
+                    stylesToAppend.push(newStyle);
                 }
             });
 
-            if(appendStyle){
-                stylesToAppend.push(newStyle);
+            // Append the new `link` styles to the head
+            if(stylesToAppend.length){
+                stylesToAppend.forEach((style)=>{
+                    (async ()=>{
+                        const response = await fetch(style.href);
+                        const responseText = await response.text();
+                        const newStyle = document.createElement('style');
+                        newStyle.setAttribute('rel', 'stylesheet');
+                        newStyle.setAttribute('href', style.href);
+                        newStyle.innerHTML = responseText;
+                        document.head.appendChild(newStyle);
+                    })();
+                });
             }
-        });
-
-        // Append the new `link` styles to the head
-        if(stylesToAppend.length){
-            stylesToAppend.forEach((style)=>{
-                (async ()=>{
-                    const response = await fetch(style.href);
-                    const responseText = await response.text();
-                    const newStyle = document.createElement('style');
-                    newStyle.setAttribute('rel', 'stylesheet');
-                    newStyle.setAttribute('href', style.href);
-                    newStyle.innerHTML = responseText;
-                    document.head.appendChild(newStyle);
-                })();
-            });
         }
     }
 

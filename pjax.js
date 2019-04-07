@@ -166,6 +166,7 @@ var Pjax = (function () {
             else {
                 this.lastChance(this._response.url);
             }
+            return;
         }
         if (!this.options.importScripts) {
             var newScripts = Array.from(tempDocument.querySelectorAll('script'));
@@ -334,93 +335,97 @@ var Pjax = (function () {
     };
     Pjax.prototype.handleScripts = function (newDocument) {
         var _this = this;
-        var newScripts = Array.from(newDocument.querySelectorAll('script'));
-        var currentScripts = Array.from(document.querySelectorAll('script'));
-        var scriptsToAppend = [];
-        newScripts.forEach(function (newScript) {
-            var appendScript = true;
-            var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
-            currentScripts.forEach(function (currentScript) {
-                var currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
-                if (newScriptFilename === currentScriptFilename) {
-                    appendScript = false;
+        if (newDocument instanceof HTMLDocument) {
+            var newScripts = Array.from(newDocument.querySelectorAll('script'));
+            var currentScripts_2 = Array.from(document.querySelectorAll('script'));
+            var scriptsToAppend_1 = [];
+            newScripts.forEach(function (newScript) {
+                var appendScript = true;
+                var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                currentScripts_2.forEach(function (currentScript) {
+                    var currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    if (newScriptFilename === currentScriptFilename) {
+                        appendScript = false;
+                    }
+                });
+                if (appendScript) {
+                    scriptsToAppend_1.push(newScript);
                 }
             });
-            if (appendScript) {
-                scriptsToAppend.push(newScript);
+            if (scriptsToAppend_1.length) {
+                scriptsToAppend_1.forEach(function (script) {
+                    if (script.src === '') {
+                        var newScript = document.createElement('script');
+                        newScript.setAttribute('src', _this._response.url);
+                        newScript.innerHTML = script.innerHTML;
+                        document.body.appendChild(newScript);
+                    }
+                    else {
+                        (function () { return __awaiter(_this, void 0, void 0, function () {
+                            var response, responseText, newScript;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4, fetch(script.src)];
+                                    case 1:
+                                        response = _a.sent();
+                                        return [4, response.text()];
+                                    case 2:
+                                        responseText = _a.sent();
+                                        newScript = document.createElement('script');
+                                        newScript.setAttribute('src', script.src);
+                                        newScript.innerHTML = responseText;
+                                        document.body.appendChild(newScript);
+                                        return [2];
+                                }
+                            });
+                        }); })();
+                    }
+                });
             }
-        });
-        if (scriptsToAppend.length) {
-            scriptsToAppend.forEach(function (script) {
-                if (script.src === '') {
-                    var newScript = document.createElement('script');
-                    newScript.setAttribute('src', _this._response.url);
-                    newScript.innerHTML = script.innerHTML;
-                    document.body.appendChild(newScript);
+        }
+    };
+    Pjax.prototype.handleCSS = function (newDocument) {
+        var _this = this;
+        if (newDocument instanceof HTMLDocument) {
+            var newStyles = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+            var currentStyles_1 = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+            var stylesToAppend_1 = [];
+            newStyles.forEach(function (newStyle) {
+                var appendStyle = true;
+                var newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                currentStyles_1.forEach(function (currentStyle) {
+                    var currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                    if (newStyleFile === currentStyleFile) {
+                        appendStyle = false;
+                    }
+                });
+                if (appendStyle) {
+                    stylesToAppend_1.push(newStyle);
                 }
-                else {
+            });
+            if (stylesToAppend_1.length) {
+                stylesToAppend_1.forEach(function (style) {
                     (function () { return __awaiter(_this, void 0, void 0, function () {
-                        var response, responseText, newScript;
+                        var response, responseText, newStyle;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4, fetch(script.src)];
+                                case 0: return [4, fetch(style.href)];
                                 case 1:
                                     response = _a.sent();
                                     return [4, response.text()];
                                 case 2:
                                     responseText = _a.sent();
-                                    newScript = document.createElement('script');
-                                    newScript.setAttribute('src', script.src);
-                                    newScript.innerHTML = responseText;
-                                    document.body.appendChild(newScript);
+                                    newStyle = document.createElement('style');
+                                    newStyle.setAttribute('rel', 'stylesheet');
+                                    newStyle.setAttribute('href', style.href);
+                                    newStyle.innerHTML = responseText;
+                                    document.head.appendChild(newStyle);
                                     return [2];
                             }
                         });
                     }); })();
-                }
-            });
-        }
-    };
-    Pjax.prototype.handleCSS = function (newDocument) {
-        var _this = this;
-        var newStyles = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
-        var currentStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
-        var stylesToAppend = [];
-        newStyles.forEach(function (newStyle) {
-            var appendStyle = true;
-            var newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
-            currentStyles.forEach(function (currentStyle) {
-                var currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
-                if (newStyleFile === currentStyleFile) {
-                    appendStyle = false;
-                }
-            });
-            if (appendStyle) {
-                stylesToAppend.push(newStyle);
+                });
             }
-        });
-        if (stylesToAppend.length) {
-            stylesToAppend.forEach(function (style) {
-                (function () { return __awaiter(_this, void 0, void 0, function () {
-                    var response, responseText, newStyle;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4, fetch(style.href)];
-                            case 1:
-                                response = _a.sent();
-                                return [4, response.text()];
-                            case 2:
-                                responseText = _a.sent();
-                                newStyle = document.createElement('style');
-                                newStyle.setAttribute('rel', 'stylesheet');
-                                newStyle.setAttribute('href', style.href);
-                                newStyle.innerHTML = responseText;
-                                document.head.appendChild(newStyle);
-                                return [2];
-                        }
-                    });
-                }); })();
-            });
         }
     };
     Pjax.prototype.handleResponse = function (response) {
