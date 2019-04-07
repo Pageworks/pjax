@@ -1,3 +1,13 @@
+# 2.0.0 - 2019-04-07
+
+### Adds
+
+- Adds: swaps `XHR` request with `Fetch`
+- Adds: new `importScripts` option to Pjax
+- Adds: new `importCSS` option to Pjax
+- Adds: when `importScripts` is set to `true` (default) any script elements will be fetched and appended to the `document.body`
+- Adds: when `importCSS` is set to `true` (default) any CSS (in `HEAD` or via `<link>`) will be fetched and appended
+
 # 1.3.0 - 2019-03-27
 
 ### Adds

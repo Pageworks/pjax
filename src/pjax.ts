@@ -360,9 +360,9 @@ export default class Pjax{
     private parseContent(responseText:string): HTMLDocument{        
         const tempDocument:HTMLDocument = document.implementation.createHTMLDocument('pjax-temp-document');
 
-        // Use regex to verify the response is a `HTMLDocument`
-        const htmlRegex = /<html[^>]+>/gi;
-        const matches = responseText.match(htmlRegex);
+        const contentType = this._response.headers.get('Content-Type');
+        const htmlRegex = /text\/html/gi;
+        const matches = contentType.match(htmlRegex);
         
         // Check that the regex match was successful
         if(matches !== null){
@@ -447,7 +447,7 @@ export default class Pjax{
      */
     private handleResponse(response:Response): void{
         if(this.options.debug){
-            console.log('%c[Pjax] '+`%cXML Http Request status: ${ response.status }`,'color:#f3ff35','color:#eee');
+            console.log('%c[Pjax] '+`%cRequest status: ${ response.status }`,'color:#f3ff35','color:#eee');
         }
         
         // Check if the server response is valid
@@ -502,7 +502,7 @@ export default class Pjax{
         }).catch((error:Error)=>{
             if(this.options.debug){
                 console.group();
-                console.error('%c[Pjax] '+`%cXHR error:`,'color:#f3ff35','color:#eee');
+                console.error('%c[Pjax] '+`%cFetch error:`,'color:#f3ff35','color:#eee');
                 console.error(error);
                 console.groupEnd();
             }

@@ -14,5 +14,7 @@ export default (options:PJAX.IOptions = null)=>{
             parsedOptions.titleSwitch                   = (options !== null && options.titleSwitch !== undefined) ? options.titleSwitch : true;
             parsedOptions.customTransitions             = (options !== null && options.customTransitions !== undefined) ? options.customTransitions : false;
             parsedOptions.customPreventionAttributes    = (options !== null && options.customPreventionAttributes !== undefined) ? options.customPreventionAttributes : [];
+            parsedOptions.importScripts                 = (options !== null && options.importScripts !== undefined) ? options.importScripts : true;
+            parsedOptions.importCSS                     = (options !== null && options.importCSS !== undefined) ? options.importCSS : true;
     return  parsedOptions;
 }

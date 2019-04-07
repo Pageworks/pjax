@@ -17,6 +17,8 @@ declare namespace Pjax{
         titleSwitch?:                   boolean;
         customTransitions?:             boolean;
         customPreventionAttributes?:    Array<string>;
+        importScripts?:                 boolean;
+        importCSS?:                     boolean;
     }
 
     export interface IScrollPosition{

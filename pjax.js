@@ -202,8 +202,9 @@ var Pjax = (function () {
     };
     Pjax.prototype.parseContent = function (responseText) {
         var tempDocument = document.implementation.createHTMLDocument('pjax-temp-document');
-        var htmlRegex = /<html[^>]+>/gi;
-        var matches = responseText.match(htmlRegex);
+        var contentType = this._response.headers.get('Content-Type');
+        var htmlRegex = /text\/html/gi;
+        var matches = contentType.match(htmlRegex);
         if (matches !== null) {
             tempDocument.documentElement.innerHTML = responseText;
             return tempDocument;
@@ -248,7 +249,7 @@ var Pjax = (function () {
     Pjax.prototype.handleResponse = function (response) {
         var _this = this;
         if (this.options.debug) {
-            console.log('%c[Pjax] ' + ("%cXML Http Request status: " + response.status), 'color:#f3ff35', 'color:#eee');
+            console.log('%c[Pjax] ' + ("%cRequest status: " + response.status), 'color:#f3ff35', 'color:#eee');
         }
         if (!response.ok) {
             trigger_1.default(document, ['pjax:error']);
@@ -291,7 +292,7 @@ var Pjax = (function () {
         }).catch(function (error) {
             if (_this.options.debug) {
                 console.group();
-                console.error('%c[Pjax] ' + "%cXHR error:", 'color:#f3ff35', 'color:#eee');
+                console.error('%c[Pjax] ' + "%cFetch error:", 'color:#f3ff35', 'color:#eee');
                 console.error(error);
                 console.groupEnd();
             }
