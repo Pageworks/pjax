@@ -223,6 +223,9 @@ export default class Pjax{
         // Build a queue of containers to swap
         const switchQueue:Array<PJAX.ISwitchObject> = [];
 
+        // Track if the new page contains additional `HTMLScriptElement`
+        let contiansScripts = false;
+
         // Loop though all the selector strings
         for(let i = 0; i < selectors.length; i++){
             
@@ -250,6 +253,14 @@ export default class Pjax{
             // Loop though all the new containers
             for(let k = 0; k < newContainers.length; k++){
 
+                if(!this.options.importScripts){
+                    // Check for any scripts
+                    const scripts = Array.from(newContainers[k].querySelectorAll('script'));
+                    if(scripts.length > 0){
+                        contiansScripts = true;
+                    }
+                }
+
                 // Get the current container object
                 const newContainer = newContainers[k];
                 const currentContainer = currentContainers[k];
@@ -269,6 +280,15 @@ export default class Pjax{
         if(switchQueue.length === 0){
             if(this.options.debug){
                 console.log('%c[Pjax] '+`%ccouldn't find anything to switch`,'color:#f3ff35','color:#eee');
+            }
+            this.lastChance(this._response.url);
+            return;
+        }
+
+        // Abort switch if one of the new containers contains a script element
+        if(contiansScripts){
+            if(this.options.debug){
+                console.log('%c[Pjax] '+`%cthe new page contains scripts`,'color:#f3ff35','color:#eee');
             }
             this.lastChance(this._response.url);
             return;

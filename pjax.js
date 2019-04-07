@@ -157,6 +157,7 @@ var Pjax = (function () {
             }
         }
         var switchQueue = [];
+        var contiansScripts = false;
         for (var i = 0; i < selectors.length; i++) {
             var newContainers = Array.from(tempDocument.querySelectorAll(selectors[i]));
             var currentContainers = Array.from(document.querySelectorAll(selectors[i]));
@@ -171,6 +172,12 @@ var Pjax = (function () {
                 return;
             }
             for (var k = 0; k < newContainers.length; k++) {
+                if (!this.options.importScripts) {
+                    var scripts = Array.from(newContainers[k].querySelectorAll('script'));
+                    if (scripts.length > 0) {
+                        contiansScripts = true;
+                    }
+                }
                 var newContainer = newContainers[k];
                 var currentContainer = currentContainers[k];
                 var switchObject = {
@@ -183,6 +190,13 @@ var Pjax = (function () {
         if (switchQueue.length === 0) {
             if (this.options.debug) {
                 console.log('%c[Pjax] ' + "%ccouldn't find anything to switch", 'color:#f3ff35', 'color:#eee');
+            }
+            this.lastChance(this._response.url);
+            return;
+        }
+        if (contiansScripts) {
+            if (this.options.debug) {
+                console.log('%c[Pjax] ' + "%cthe new page contains scripts", 'color:#f3ff35', 'color:#eee');
             }
             this.lastChance(this._response.url);
             return;
