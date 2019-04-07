@@ -45,6 +45,13 @@ var device_manager_1 = require("@codewithkyle/device-manager");
 var Pjax = (function () {
     function Pjax(options) {
         var _this = this;
+        this.handleManualLoad = function (e) {
+            var uri = e.detail.uri;
+            if (_this.options.debug) {
+                console.log('%c[Pjax] ' + ("%cmanually loading " + uri), 'color:#f3ff35', 'color:#eee');
+            }
+            _this.doRequest(uri);
+        };
         this.handlePopstate = function (e) {
             if (e.state) {
                 if (_this.options.debug) {
@@ -99,6 +106,7 @@ var Pjax = (function () {
         if (this.options.customTransitions) {
             document.addEventListener('pjax:continue', this.handleContinue);
         }
+        document.addEventListener('pjax:load', this.handleManualLoad);
         parse_dom_1.default(document.body, this);
     };
     Pjax.prototype.loadUrl = function (href, loadType) {
@@ -440,6 +448,14 @@ var Pjax = (function () {
             this.abortRequest();
             trigger_1.default(document, ['pjax:cancel']);
         }
+    };
+    Pjax.load = function (url) {
+        var customEvent = new CustomEvent('pjax:load', {
+            detail: {
+                uri: url
+            }
+        });
+        document.dispatchEvent(customEvent);
     };
     Pjax.VERSION = '2.0.0';
     return Pjax;

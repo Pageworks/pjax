@@ -70,8 +70,21 @@ export default class Pjax{
             document.addEventListener('pjax:continue', this.handleContinue );
         }
 
+        document.addEventListener('pjax:load', this.handleManualLoad);
+
         // Attach listeners to initial link elements
         parseDOM(document.body, this);
+    }
+
+    /**
+     * Fired when the custom `pjax:load` event fires on the `document`
+     */
+    private handleManualLoad:EventListener = (e:CustomEvent)=>{
+        const uri = e.detail.uri;
+        if(this.options.debug){
+            console.log('%c[Pjax] '+`%cmanually loading ${ uri }`,'color:#f3ff35','color:#eee');
+        }
+        this.doRequest(uri);
     }
 
     /**
@@ -671,5 +684,18 @@ export default class Pjax{
             // Trigger the cancel event
             trigger(document, ['pjax:cancel']);
         }
+    }
+
+    /**
+     * Manually triggers Pjax to load the requested page.
+     * @param url - `string`
+     */
+    public static load(url:string):void{
+        const customEvent = new CustomEvent('pjax:load', {
+            detail:{
+                uri: url
+            }
+        });
+        document.dispatchEvent(customEvent);
     }
 }

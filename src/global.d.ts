@@ -4,6 +4,7 @@ export as namespace Pjax;
 
 declare class Pjax {
     constructor(options?: Partial<Pjax.IOptions>);
+    public static load: (url:string)=>void;
 }
 
 declare namespace Pjax{

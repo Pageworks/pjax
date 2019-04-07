@@ -14,6 +14,12 @@ import Pjax from '../pjax';
 
     var clearEventsButton = document.body.querySelector('.js-clear');
 
+    var manualButton = document.body.querySelector('.js-manual');
+
+    manualButton.addEventListener('click', function(e){
+        Pjax.load('manual.html');
+    });
+
     function clearStatus(){
         prefetchLight.classList.remove('is-lit');
         loadLight.classList.remove('is-lit');
