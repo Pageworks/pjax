@@ -1,3 +1,10 @@
+# 2.0.1 - 2019-04-15
+
+### Fixes
+
+- Fixes: updates CSS regex href matching to handle cases where developers use a hash/timestamp for cache busting
+- Fixes: updates script src regex matching to handle cases where developers use a hash/timestamp for cache busting
+
 # 2.0.0 - 2019-04-07
 
 ### Adds

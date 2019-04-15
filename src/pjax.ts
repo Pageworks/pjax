@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.0.0';
+    public static VERSION:string    = '2.0.1';
 
     public  options:        PJAX.IOptions;
     private _cache:         PJAX.ICacheObject;
@@ -535,10 +535,10 @@ export default class Pjax{
 
             newScripts.forEach((newScript)=>{
                 let appendScript = true;
-                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
 
                 currentScripts.forEach((currentScript)=>{
-                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
                     if(newScriptFilename === currentScriptFilename){
                         appendScript = false;
                     }
@@ -588,10 +588,10 @@ export default class Pjax{
 
             newStyles.forEach((newStyle)=>{
                 let appendStyle = true;
-                const newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                const newStyleFile = newStyle.getAttribute('href').match(/[^/]+$/g)[0];
 
                 currentStyles.forEach((currentStyle)=>{
-                    const currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                    const currentStyleFile = currentStyle.getAttribute('href').match(/[^/]+$/g)[0];
                     if(newStyleFile === currentStyleFile){
                         appendStyle = false;
                     }
