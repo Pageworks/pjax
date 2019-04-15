@@ -16,15 +16,16 @@ export default class Pjax{
 
     public static VERSION:string    = '2.0.1';
 
-    public  options:        PJAX.IOptions;
-    private _cache:         PJAX.ICacheObject;
-    private _request:       string;
-    private _response:      Response;
-    private _confirmed:     boolean;
-    private _cachedSwitch:  PJAX.ICachedSwitchOptions;
-    private _scrollTo:      PJAX.IScrollPosition;
-    private _isPushstate:   boolean;
-    private _dom:           HTMLElement;
+    public  options:            PJAX.IOptions;
+    private _cache:             PJAX.ICacheObject;
+    private _request:           string;
+    private _response:          Response;
+    private _confirmed:         boolean;
+    private _cachedSwitch:      PJAX.ICachedSwitchOptions;
+    private _scrollTo:          PJAX.IScrollPosition;
+    private _isPushstate:       boolean;
+    private _dom:               HTMLElement;
+    private _scriptsToAppend:   Array<HTMLScriptElement>;
 
     constructor(options?:PJAX.IOptions){
         this._dom           = document.documentElement;
@@ -37,14 +38,15 @@ export default class Pjax{
             return;
         }
         
-        this._cache         = null;
-        this.options        = parseOptions(options);
-        this._request       = null;
-        this._response      = null;
-        this._confirmed     = false;
-        this._cachedSwitch  = null;
-        this._scrollTo      = {x:0, y:0};
-        this._isPushstate   = true;
+        this._cache             = null;
+        this.options            = parseOptions(options);
+        this._request           = null;
+        this._response          = null;
+        this._confirmed         = false;
+        this._cachedSwitch      = null;
+        this._scrollTo          = {x:0, y:0};
+        this._isPushstate       = true;
+        this._scriptsToAppend   = [];
 
         this.init();
     }
@@ -157,6 +159,8 @@ export default class Pjax{
 
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
+
+        this.checkForScriptLoadComplete();
 
         // Handle status classes
         this._dom.classList.add('dom-is-loaded');
@@ -531,7 +535,6 @@ export default class Pjax{
         if(newDocument instanceof HTMLDocument){
             const newScripts = Array.from(newDocument.querySelectorAll('script'));
             const currentScripts = Array.from(document.querySelectorAll('script'));
-            const scriptsToAppend:Array<HTMLScriptElement> = [];
 
             newScripts.forEach((newScript)=>{
                 let appendScript = true;
@@ -545,19 +548,20 @@ export default class Pjax{
                 });
 
                 if(appendScript){
-                    scriptsToAppend.push(newScript);
+                    this._scriptsToAppend.push(newScript);
                 }
             });
 
             // Append the new scripts to the body
-            if(scriptsToAppend.length){
-                scriptsToAppend.forEach((script)=>{
+            if(this._scriptsToAppend.length){
+                this._scriptsToAppend.forEach((script)=>{
                     // Append inline script elements
                     if(script.src === ''){
                         const newScript = document.createElement('script');
                         newScript.setAttribute('src', this._response.url);
                         newScript.innerHTML = script.innerHTML;
                         document.body.appendChild(newScript);
+                        this.checkForScriptLoadComplete(script);
                     }
                     // Append script elements that have a source
                     else{
@@ -568,9 +572,51 @@ export default class Pjax{
                             newScript.setAttribute('src', script.src);
                             newScript.innerHTML = responseText;
                             document.body.appendChild(newScript);
+                            this.checkForScriptLoadComplete(script);
                         })();
                     }
                 });
+            }
+        }
+    }
+
+    /**
+     * Handles the custom `DOMContentLoaded` style event.
+     * If a `script` is provided splice it from the array of scripts to append.
+     * @param script - `HTMLScriptElement`
+     */
+    private checkForScriptLoadComplete(script:HTMLScriptElement = null){
+        // Check if there are scripts to append
+        if(this._scriptsToAppend.length){
+            
+            if(script === null){
+                if(this.options.debug){
+                    console.error('%c[Pjax] '+`%cScript element provided to be spliced was null`,'color:#f3ff35','color:#eee');
+                }
+                return;
+            }
+
+            // Get the index of the script
+            const scriptIndex = this._scriptsToAppend.indexOf(script);
+            
+            // Splice the scripts
+            this._scriptsToAppend.splice(scriptIndex, 1);
+
+            // Check if the array is now empty
+            if(!this._scriptsToAppend.length){
+                if(this.options.debug){
+                    console.log('%c[Pjax] '+`%cAll scripts have been loaded`,'color:#f3ff35','color:#eee');
+                }
+
+                // Trigger the content loaded event
+                trigger(document, ['pjax:scriptContentLoaded']);
+            }
+        }
+        // The scripts to append array is empty
+        else{
+            if(this.options.debug){
+                console.log('%c[Pjax] '+`%cNo new scripts to load`,'color:#f3ff35','color:#eee');
+                trigger(document, ['pjax:scriptContentLoaded']);
             }
         }
     }

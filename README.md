@@ -111,9 +111,12 @@ document.addEventListener('pjax:send', (e)=>{ console.log('Event: pjax:send', e)
 document.addEventListener('pjax:prefetch', ()=>{ console.log('Event: pjax:prefetch'); });
 document.addEventListener('pjax:cancel', ()=>{ console.log('Event: pjax:cancel'); });
 document.addEventListener('pjax:complete', ()=>{ console.log('Event: pjax:complete'); });
+document.addEventListener('pjax:scriptContentLoaded', ()=>{ console.log('Event: pjax:scriptContentLoaded'); });
 ```
 
 Pjax listens for a `pjax:continue` event on the `document`. This is only used when the `customTransitions` option is set to `true`. Pjax will **NOT** swap content until it recieves this event.
+
+The `pjax:scriptContentLoaded` will fired on the `document` when all the new scripts have been fetched and appended to the body.
 
 ### Status Classes
 Pjax sets two custom status classes on the `document` element that you can use in your CSS to style your page transitions. In the example below we set all elements to use the `wait` cursor while the `dom-is-loading` class is set. Once the `pjax:complete` or `pjax:error` events fire the `dom-is-loading` class is removed and the `dom-is-loaded` class is applied.

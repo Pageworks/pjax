@@ -90,6 +90,7 @@ var Pjax = (function () {
         this._cachedSwitch = null;
         this._scrollTo = { x: 0, y: 0 };
         this._isPushstate = true;
+        this._scriptsToAppend = [];
         this.init();
     }
     Pjax.prototype.init = function () {
@@ -137,6 +138,7 @@ var Pjax = (function () {
             }
         }
         trigger_1.default(document, ['pjax:complete']);
+        this.checkForScriptLoadComplete();
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
         this._cache = null;
@@ -338,7 +340,6 @@ var Pjax = (function () {
         if (newDocument instanceof HTMLDocument) {
             var newScripts = Array.from(newDocument.querySelectorAll('script'));
             var currentScripts_2 = Array.from(document.querySelectorAll('script'));
-            var scriptsToAppend_1 = [];
             newScripts.forEach(function (newScript) {
                 var appendScript = true;
                 var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
@@ -349,16 +350,17 @@ var Pjax = (function () {
                     }
                 });
                 if (appendScript) {
-                    scriptsToAppend_1.push(newScript);
+                    _this._scriptsToAppend.push(newScript);
                 }
             });
-            if (scriptsToAppend_1.length) {
-                scriptsToAppend_1.forEach(function (script) {
+            if (this._scriptsToAppend.length) {
+                this._scriptsToAppend.forEach(function (script) {
                     if (script.src === '') {
                         var newScript = document.createElement('script');
                         newScript.setAttribute('src', _this._response.url);
                         newScript.innerHTML = script.innerHTML;
                         document.body.appendChild(newScript);
+                        _this.checkForScriptLoadComplete(script);
                     }
                     else {
                         (function () { return __awaiter(_this, void 0, void 0, function () {
@@ -375,12 +377,38 @@ var Pjax = (function () {
                                         newScript.setAttribute('src', script.src);
                                         newScript.innerHTML = responseText;
                                         document.body.appendChild(newScript);
+                                        this.checkForScriptLoadComplete(script);
                                         return [2];
                                 }
                             });
                         }); })();
                     }
                 });
+            }
+        }
+    };
+    Pjax.prototype.checkForScriptLoadComplete = function (script) {
+        if (script === void 0) { script = null; }
+        if (this._scriptsToAppend.length) {
+            if (script === null) {
+                if (this.options.debug) {
+                    console.error('%c[Pjax] ' + "%cScript element provided to be spliced was null", 'color:#f3ff35', 'color:#eee');
+                }
+                return;
+            }
+            var scriptIndex = this._scriptsToAppend.indexOf(script);
+            this._scriptsToAppend.splice(scriptIndex, 1);
+            if (!this._scriptsToAppend.length) {
+                if (this.options.debug) {
+                    console.log('%c[Pjax] ' + "%cAll scripts have been loaded", 'color:#f3ff35', 'color:#eee');
+                }
+                trigger_1.default(document, ['pjax:scriptContentLoaded']);
+            }
+        }
+        else {
+            if (this.options.debug) {
+                console.log('%c[Pjax] ' + "%cNo new scripts to load", 'color:#f3ff35', 'color:#eee');
+                trigger_1.default(document, ['pjax:scriptContentLoaded']);
             }
         }
     };
