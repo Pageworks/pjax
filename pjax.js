@@ -341,9 +341,9 @@ var Pjax = (function () {
             var scriptsToAppend_1 = [];
             newScripts.forEach(function (newScript) {
                 var appendScript = true;
-                var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                var newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
                 currentScripts_2.forEach(function (currentScript) {
-                    var currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    var currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
                     if (newScriptFilename === currentScriptFilename) {
                         appendScript = false;
                     }

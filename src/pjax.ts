@@ -535,10 +535,10 @@ export default class Pjax{
 
             newScripts.forEach((newScript)=>{
                 let appendScript = true;
-                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
 
                 currentScripts.forEach((currentScript)=>{
-                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/(?=\w+\.\w{2,4}$).+/g)[0] : 'custom-script';
+                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
                     if(newScriptFilename === currentScriptFilename){
                         appendScript = false;
                     }
