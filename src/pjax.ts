@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.0.1';
+    public static VERSION:string    = '2.1.0';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
@@ -160,7 +160,12 @@ export default class Pjax{
         // Trigger the complete event
         trigger(document, ['pjax:complete']);
 
-        this.checkForScriptLoadComplete();
+        if(!this._scriptsToAppend.length){
+            if(this.options.debug){
+                console.log('%c[Pjax] '+`%cNo new scripts to load`,'color:#f3ff35','color:#eee');
+                trigger(document, ['pjax:scriptContentLoaded']);
+            }
+        }
 
         // Handle status classes
         this._dom.classList.add('dom-is-loaded');
@@ -569,6 +574,7 @@ export default class Pjax{
                             const response = await fetch(script.src);
                             const responseText = await response.text();
                             const newScript = document.createElement('script');
+
                             newScript.setAttribute('src', script.src);
                             newScript.innerHTML = responseText;
                             document.body.appendChild(newScript);
@@ -609,13 +615,6 @@ export default class Pjax{
                 }
 
                 // Trigger the content loaded event
-                trigger(document, ['pjax:scriptContentLoaded']);
-            }
-        }
-        // The scripts to append array is empty
-        else{
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cNo new scripts to load`,'color:#f3ff35','color:#eee');
                 trigger(document, ['pjax:scriptContentLoaded']);
             }
         }

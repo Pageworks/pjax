@@ -138,7 +138,12 @@ var Pjax = (function () {
             }
         }
         trigger_1.default(document, ['pjax:complete']);
-        this.checkForScriptLoadComplete();
+        if (!this._scriptsToAppend.length) {
+            if (this.options.debug) {
+                console.log('%c[Pjax] ' + "%cNo new scripts to load", 'color:#f3ff35', 'color:#eee');
+                trigger_1.default(document, ['pjax:scriptContentLoaded']);
+            }
+        }
         this._dom.classList.add('dom-is-loaded');
         this._dom.classList.remove('dom-is-loading');
         this._cache = null;
@@ -405,12 +410,6 @@ var Pjax = (function () {
                 trigger_1.default(document, ['pjax:scriptContentLoaded']);
             }
         }
-        else {
-            if (this.options.debug) {
-                console.log('%c[Pjax] ' + "%cNo new scripts to load", 'color:#f3ff35', 'color:#eee');
-                trigger_1.default(document, ['pjax:scriptContentLoaded']);
-            }
-        }
     };
     Pjax.prototype.handleCSS = function (newDocument) {
         var _this = this;
@@ -558,7 +557,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.0.1';
+    Pjax.VERSION = '2.1.0';
     return Pjax;
 }());
 exports.default = Pjax;
