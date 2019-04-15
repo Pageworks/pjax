@@ -1,3 +1,9 @@
+# 2.1.0 - 2019-04-15
+
+### Adds:
+
+- Adds: `pjax:scriptContentLoaded` event that fires on the `document` when all scripts have been fetched and appended to the body
+
 # 2.0.1 - 2019-04-15
 
 ### Fixes
