@@ -392,9 +392,9 @@ var Pjax = (function () {
             var stylesToAppend_1 = [];
             newStyles.forEach(function (newStyle) {
                 var appendStyle = true;
-                var newStyleFile = newStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                var newStyleFile = newStyle.getAttribute('href').match(/[^/]+$/g)[0];
                 currentStyles_1.forEach(function (currentStyle) {
-                    var currentStyleFile = currentStyle.getAttribute('href').match(/(?=\w+\.\w{3,4}$).+/g)[0];
+                    var currentStyleFile = currentStyle.getAttribute('href').match(/[^/]+$/g)[0];
                     if (newStyleFile === currentStyleFile) {
                         appendStyle = false;
                     }
@@ -530,7 +530,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.0.0';
+    Pjax.VERSION = '2.0.1';
     return Pjax;
 }());
 exports.default = Pjax;
