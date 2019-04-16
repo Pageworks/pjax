@@ -490,7 +490,15 @@ var Pjax = (function () {
         if (this.options.cacheBust) {
             uri += (queryString === undefined) ? ("?cb=" + Date.now()) : ("&cb=" + Date.now());
         }
-        fetch(uri).then(function (response) {
+        var fetchMethod = 'GET';
+        var fetchHeaders = new Headers({
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Pjax': 'true'
+        });
+        fetch(uri, {
+            method: fetchMethod,
+            headers: fetchHeaders
+        }).then(function (response) {
             _this.handleResponse(response);
         }).catch(function (error) {
             if (_this.options.debug) {
@@ -551,7 +559,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.1.1';
+    Pjax.VERSION = '2.1.2';
     return Pjax;
 }());
 exports.default = Pjax;

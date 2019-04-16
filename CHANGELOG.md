@@ -1,3 +1,9 @@
+# 2.1.2 - 2019-04-16
+
+### Fixes
+
+- Fixes: sends Fetc with `method: GET` and the following headers: `'X-Requested-With': 'XMLHttpRequest'` and `'X-Pjax': 'true'`
+
 # 2.1.1 - 2019-04-16
 
 ### Fixes
