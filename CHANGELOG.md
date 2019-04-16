@@ -1,3 +1,9 @@
+# 2.1.1 - 2019-04-16
+
+### Fixes
+
+- Fixes: script loading bug when the current `document` and the incoming `document` don't match
+
 # 2.1.0 - 2019-04-15
 
 ### Adds:
