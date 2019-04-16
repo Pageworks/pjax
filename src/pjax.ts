@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.1.1';
+    public static VERSION:string    = '2.1.2';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
@@ -715,7 +715,16 @@ export default class Pjax{
             uri += (queryString === undefined) ? (`?cb=${Date.now()}`) : (`&cb=${Date.now()}`);
         }
 
-        fetch(uri).then((response:Response)=>{
+        const fetchMethod = 'GET';
+        const fetchHeaders = new Headers({
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Pjax': 'true'
+        });
+
+        fetch(uri, {
+            method: fetchMethod,
+            headers: fetchHeaders
+        }).then((response:Response)=>{
             this.handleResponse(response);
         }).catch((error:Error)=>{
             if(this.options.debug){

@@ -1,6 +1,6 @@
 {
     "name": "@codewithkyle/pjax",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "description": "Turns any website into a SPA using Fetch and link prefetching.",
     "keywords": [
         "pjax",
