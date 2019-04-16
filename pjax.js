@@ -246,6 +246,12 @@ var Pjax = (function () {
             this.lastChance(this._response.url);
             return;
         }
+        if (this.options.importScripts) {
+            this.handleScripts(tempDocument);
+        }
+        if (this.options.importCSS) {
+            this.handleCSS(tempDocument);
+        }
         if (!this.options.customTransitions) {
             if (this.options.titleSwitch) {
                 document.title = tempDocument.title;
@@ -280,12 +286,6 @@ var Pjax = (function () {
         }
         clear_active_1.default();
         state_manager_1.default.doReplace(window.location.href, document.title);
-        if (this.options.importScripts) {
-            this.handleScripts(this._cache.document);
-        }
-        if (this.options.importCSS) {
-            this.handleCSS(this._cache.document);
-        }
         this.switchSelectors(this.options.selectors, this._cache.document);
     };
     Pjax.prototype.parseContent = function (responseText) {
@@ -323,12 +323,6 @@ var Pjax = (function () {
         if (tempDocument instanceof HTMLDocument) {
             clear_active_1.default();
             state_manager_1.default.doReplace(window.location.href, document.title);
-            if (this.options.importScripts) {
-                this.handleScripts(tempDocument);
-            }
-            if (this.options.importCSS) {
-                this.handleCSS(tempDocument);
-            }
             this.switchSelectors(this.options.selectors, tempDocument);
         }
         else {
@@ -557,7 +551,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.1.0';
+    Pjax.VERSION = '2.1.1';
     return Pjax;
 }());
 exports.default = Pjax;

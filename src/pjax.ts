@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.1.0';
+    public static VERSION:string    = '2.1.1';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
@@ -368,6 +368,14 @@ export default class Pjax{
             this.lastChance(this._response.url);
             return;
         }
+
+        if(this.options.importScripts){
+            this.handleScripts(tempDocument);
+        }
+
+        if(this.options.importCSS){
+            this.handleCSS(tempDocument);
+        }
         
         // Check if Pjax needs to wait for the continue event
         if(!this.options.customTransitions){
@@ -423,14 +431,6 @@ export default class Pjax{
         clearActive();
 
         StateManager.doReplace(window.location.href, document.title);
-
-        if(this.options.importScripts){
-            this.handleScripts(this._cache.document);
-        }
-
-        if(this.options.importCSS){
-            this.handleCSS(this._cache.document);
-        }
 
         // Build the selector swapping queue
         this.switchSelectors(this.options.selectors, this._cache.document);
@@ -505,14 +505,6 @@ export default class Pjax{
             clearActive();
 
             StateManager.doReplace(window.location.href, document.title);
-
-            if(this.options.importScripts){
-                this.handleScripts(tempDocument);
-            }
-
-            if(this.options.importCSS){
-                this.handleCSS(tempDocument);
-            }
     
             // Swap the current page with the new page
             this.switchSelectors(this.options.selectors, tempDocument);
