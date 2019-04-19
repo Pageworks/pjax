@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.1.2';
+    public static VERSION:string    = '2.1.3';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
@@ -26,6 +26,7 @@ export default class Pjax{
     private _isPushstate:       boolean;
     private _dom:               HTMLElement;
     private _scriptsToAppend:   Array<HTMLScriptElement>;
+    private _requestId:         number;
 
     constructor(options?:PJAX.IOptions){
         this._dom           = document.documentElement;
@@ -47,6 +48,7 @@ export default class Pjax{
         this._scrollTo          = {x:0, y:0};
         this._isPushstate       = true;
         this._scriptsToAppend   = [];
+        this._requestId         = 0;
 
         this.init();
     }
@@ -664,6 +666,12 @@ export default class Pjax{
      * @see https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
      */
     private handleResponse(response:Response): void{
+        
+        // If the request is null (aborted) do nothing
+        if(this._request === null){
+            return;    
+        }
+        
         if(this.options.debug){
             console.log('%c[Pjax] '+`%cRequest status: ${ response.status }`,'color:#f3ff35','color:#eee');
         }
@@ -707,6 +715,13 @@ export default class Pjax{
      * @param href - URI of the reqeusted page
      */
     private doRequest(href:string):void{
+        
+        // Update the current request ID
+        this._requestId++;
+
+        // Store the ID at the start of the async request
+        const idAtStartOfRequest = this._requestId;
+        
         let     uri                   = href;
         const   queryString           = href.split('?')[1];
 
@@ -725,7 +740,10 @@ export default class Pjax{
             method: fetchMethod,
             headers: fetchHeaders
         }).then((response:Response)=>{
-            this.handleResponse(response);
+            // Only handle the request if it's still the most reacent request
+            if(idAtStartOfRequest === this._requestId){
+                this.handleResponse(response);
+            }
         }).catch((error:Error)=>{
             if(this.options.debug){
                 console.group();

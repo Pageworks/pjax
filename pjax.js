@@ -91,6 +91,7 @@ var Pjax = (function () {
         this._scrollTo = { x: 0, y: 0 };
         this._isPushstate = true;
         this._scriptsToAppend = [];
+        this._requestId = 0;
         this.init();
     }
     Pjax.prototype.init = function () {
@@ -451,6 +452,9 @@ var Pjax = (function () {
     };
     Pjax.prototype.handleResponse = function (response) {
         var _this = this;
+        if (this._request === null) {
+            return;
+        }
         if (this.options.debug) {
             console.log('%c[Pjax] ' + ("%cRequest status: " + response.status), 'color:#f3ff35', 'color:#eee');
         }
@@ -485,6 +489,8 @@ var Pjax = (function () {
     };
     Pjax.prototype.doRequest = function (href) {
         var _this = this;
+        this._requestId++;
+        var idAtStartOfRequest = this._requestId;
         var uri = href;
         var queryString = href.split('?')[1];
         if (this.options.cacheBust) {
@@ -499,7 +505,9 @@ var Pjax = (function () {
             method: fetchMethod,
             headers: fetchHeaders
         }).then(function (response) {
-            _this.handleResponse(response);
+            if (idAtStartOfRequest === _this._requestId) {
+                _this.handleResponse(response);
+            }
         }).catch(function (error) {
             if (_this.options.debug) {
                 console.group();
@@ -559,7 +567,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.1.2';
+    Pjax.VERSION = '2.1.3';
     return Pjax;
 }());
 exports.default = Pjax;

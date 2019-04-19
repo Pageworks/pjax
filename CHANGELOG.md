@@ -1,8 +1,15 @@
+# 2.1.3 - 2019-04-19
+
+### Fixes
+
+- Fixes: tracks the request ID and doesn't handle stale request
+- Fixes: no longer default handling aborted request types (`this._request === null`)
+
 # 2.1.2 - 2019-04-16
 
 ### Fixes
 
-- Fixes: sends Fetc with `method: GET` and the following headers: `'X-Requested-With': 'XMLHttpRequest'` and `'X-Pjax': 'true'`
+- Fixes: sends Fetch with `method: GET` and the following headers: `'X-Requested-With': 'XMLHttpRequest'` and `'X-Pjax': 'true'`
 
 # 2.1.1 - 2019-04-16
 
