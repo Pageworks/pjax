@@ -1,5 +1,5 @@
 {
-    "name": "@codewithkyle/pjax",
+    "name": "@pageworks/pjax",
     "version": "2.1.3",
     "description": "Turns any website into a SPA using Fetch and link prefetching.",
     "keywords": [
@@ -13,8 +13,8 @@
         "typescript",
         "fetch"
     ],
-    "repository": "https://github.com/codewithkyle/pjax.git",
-    "author": "Kyle Andrews (http://codewithkyle.com/)",
+    "repository": "https://github.com/Pageworks/pjax.git",
+    "author": "Pageworks",
     "license": "MIT",
     "main": "pjax.js",
     "types": "./src/global.d.ts",
@@ -31,8 +31,8 @@
         }
     },
     "dependencies": {
-        "@codewithkyle/device-manager": "latest",
-        "@codewithkyle/state-manager": "latest"
+        "@pageworks/device-manager": "latest",
+        "@pageworks/state-manager": "latest"
     },
     "devDependencies": {
         "http-server": "^0.11.1",
