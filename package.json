@@ -1,6 +1,6 @@
 {
     "name": "@pageworks/pjax",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "description": "Turns any website into a SPA using Fetch and link prefetching.",
     "keywords": [
         "pjax",

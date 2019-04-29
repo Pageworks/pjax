@@ -40,8 +40,8 @@ var trigger_1 = require("./lib/events/trigger");
 var parse_dom_1 = require("./lib/parse-dom");
 var scroll_1 = require("./lib/util/scroll");
 var clear_active_1 = require("./lib/util/clear-active");
-var state_manager_1 = require("@codewithkyle/state-manager");
-var device_manager_1 = require("@codewithkyle/device-manager");
+var state_manager_1 = require("@pageworks/state-manager");
+var device_manager_1 = require("@pageworks/device-manager");
 var Pjax = (function () {
     function Pjax(options) {
         var _this = this;
@@ -567,7 +567,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.1.3';
+    Pjax.VERSION = '2.1.4';
     return Pjax;
 }());
 exports.default = Pjax;

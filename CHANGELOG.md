@@ -1,3 +1,9 @@
+# 2.1.3 - 2019-04-29
+
+### Fixes
+
+- Fixes: switches dependencies from `@codewithkyle` to `@pageworks`
+
 # 2.1.3 - 2019-04-19
 
 ### Fixes

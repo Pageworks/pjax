@@ -6,15 +6,15 @@ import scrollWindow from './lib/util/scroll';
 import clearActive from './lib/util/clear-active';
 
 // Custom Packages
-import StateManager from '@codewithkyle/state-manager';
-import DeviceManager from '@codewithkyle/device-manager';
+import StateManager from '@pageworks/state-manager';
+import DeviceManager from '@pageworks/device-manager';
 
 // Type Definitions
 import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.1.3';
+    public static VERSION:string    = '2.1.4';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
