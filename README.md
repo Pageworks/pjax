@@ -1,8 +1,25 @@
 # Pjax
-Pjax enables fast and easy AJAX navigation on any website using `pushState` and `fetch`. No more full page reloads, no more multipul HTTP request, and written entirely in TypeScript.
+Pjax enables fast and easy AJAX navigation on any website using `pushState` and `fetch`. No more full page reloads, no more multiple HTTP request, and written entirely in TypeScript.
 
 ## Installation
-Add Pjax as a dependency to your `package.json` with `npm i --save @codewithkyle/pjax`. Once the package is installed import the package with `import Pjax from '@codewithkyle/pjax'`. Then simple instantiate a new instance of Pjax with `new Pjax()`.
+
+Download Pjax via NPM:
+
+```
+npm i --save @pageworks/pjax
+```
+
+Once the package is installed import the package:
+
+```
+import Pjax from '@pageworks/pjax';
+```
+
+Then it's as simple as starting a new instance:
+
+```
+new Pjax();
+```
 
 ## How Pjax Works
 Pjax loads pages using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and updates the browser's current URL using a `window.pushState()` all without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
@@ -57,7 +74,7 @@ Start by setting up the basic `index.html` file for your website.
 
 In the main/application script for your project you can being using Pjax with the following:
 ```
-import Pjax from '@codewithkyle/pjax';
+import Pjax from '@pageworks/pjax';
 
 const pjax = new Pjax({
     debug: true
