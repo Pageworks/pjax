@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.1.4';
+    public static VERSION:string    = '2.2.0';
 
     public  options:            PJAX.IOptions;
     private _cache:             PJAX.ICacheObject;
@@ -535,13 +535,25 @@ export default class Pjax{
             const newScripts = Array.from(newDocument.querySelectorAll('script'));
             const currentScripts = Array.from(document.querySelectorAll('script'));
 
+
             newScripts.forEach((newScript)=>{
                 let appendScript = true;
-                const newScriptFilename = (newScript.getAttribute('src') !== null) ? newScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
+                let newScriptFilename = 'inline-script';
+
+                if (newScript.getAttribute('src') !== null)
+                {
+                    newScriptFilename = newScript.getAttribute('src').match(/[^/]+$/g)[0];
+                }
 
                 currentScripts.forEach((currentScript)=>{
-                    const currentScriptFilename = (currentScript.getAttribute('src') !== null) ? currentScript.getAttribute('src').match(/[^/]+$/g)[0] : 'custom-script';
-                    if(newScriptFilename === currentScriptFilename){
+                    let currentScriptFilename = 'inline-script';
+
+                    if (currentScript.getAttribute('src') !== null)
+                    {
+                        currentScriptFilename = currentScript.getAttribute('src').match(/[^/]+$/g)[0];
+                    }
+
+                    if(newScriptFilename === currentScriptFilename && newScriptFilename !== 'inline-script'){
                         appendScript = false;
                     }
                 });
@@ -553,27 +565,41 @@ export default class Pjax{
 
             // Append the new scripts to the body
             if(this._scriptsToAppend.length){
+                let scriptLoadCount = 0;
+
                 this._scriptsToAppend.forEach((script)=>{
                     // Append inline script elements
                     if(script.src === ''){
                         const newScript = document.createElement('script');
-                        newScript.setAttribute('src', this._response.url);
+                        newScript.dataset.src = this._response.url;
                         newScript.innerHTML = script.innerHTML;
-                        document.body.appendChild(newScript);
-                        this.checkForScriptLoadComplete(script);
+                        this.options.scriptImportLocation.appendChild(newScript);
+                        scriptLoadCount++;
+                        this.checkForScriptLoadComplete(scriptLoadCount);
                     }
-                    // Append script elements that have a source
-                    else{
-                        (async ()=>{
-                            const response = await fetch(script.src);
-                            const responseText = await response.text();
+                    else
+                    {
+                        fetch(script.src, {
+                            method: 'GET',
+                            credentials: 'include',
+                            headers: new Headers({
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'text/javascript'
+                            })
+                        })
+                        .then(request => request.text())
+                        .then(response => {
                             const newScript = document.createElement('script');
 
                             newScript.setAttribute('src', script.src);
-                            newScript.innerHTML = responseText;
-                            document.body.appendChild(newScript);
-                            this.checkForScriptLoadComplete(script);
-                        })();
+                            newScript.innerHTML = response;
+                            this.options.scriptImportLocation.appendChild(newScript);
+                            scriptLoadCount++;
+                            this.checkForScriptLoadComplete(scriptLoadCount);
+                        })
+                        .catch(error => {
+                            console.error('Failed to fetch script', script.src, error);
+                        });
                     }
                 });
             }
@@ -585,32 +611,17 @@ export default class Pjax{
      * If a `script` is provided splice it from the array of scripts to append.
      * @param script - `HTMLScriptElement`
      */
-    private checkForScriptLoadComplete(script:HTMLScriptElement = null){
-        // Check if there are scripts to append
-        if(this._scriptsToAppend.length){
-            
-            if(script === null){
-                if(this.options.debug){
-                    console.error('%c[Pjax] '+`%cScript element provided to be spliced was null`,'color:#f3ff35','color:#eee');
-                }
-                return;
+    private checkForScriptLoadComplete(scriptCount:number){
+        if (scriptCount === this._scriptsToAppend.length)
+        {
+            if(this.options.debug){
+                console.log('%c[Pjax] '+`%cAll scripts have been loaded`,'color:#f3ff35','color:#eee');
             }
 
-            // Get the index of the script
-            const scriptIndex = this._scriptsToAppend.indexOf(script);
-            
-            // Splice the scripts
-            this._scriptsToAppend.splice(scriptIndex, 1);
+            this._scriptsToAppend = [];
 
-            // Check if the array is now empty
-            if(!this._scriptsToAppend.length){
-                if(this.options.debug){
-                    console.log('%c[Pjax] '+`%cAll scripts have been loaded`,'color:#f3ff35','color:#eee');
-                }
-
-                // Trigger the content loaded event
-                trigger(document, ['pjax:scriptContentLoaded']);
-            }
+            // Trigger the content loaded event
+            trigger(document, ['pjax:scriptContentLoaded']);
         }
     }
 
@@ -644,15 +655,25 @@ export default class Pjax{
             // Append the new `link` styles to the head
             if(stylesToAppend.length){
                 stylesToAppend.forEach((style)=>{
-                    (async ()=>{
-                        const response = await fetch(style.href);
-                        const responseText = await response.text();
+                    fetch(style.href, {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: new Headers({
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/javascript'
+                        })
+                    })
+                    .then(request => request.text())
+                    .then(response => {
                         const newStyle = document.createElement('style');
                         newStyle.setAttribute('rel', 'stylesheet');
                         newStyle.setAttribute('href', style.href);
-                        newStyle.innerHTML = responseText;
+                        newStyle.innerHTML = response;
                         document.head.appendChild(newStyle);
-                    })();
+                    })
+                    .catch(error => {
+                        console.error('Failed to fetch stylesheet', style.href, error);
+                    });
                 });
             }
         }

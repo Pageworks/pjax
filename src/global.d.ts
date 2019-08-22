@@ -19,6 +19,7 @@ declare namespace Pjax{
         customPreventionAttributes?:    Array<string>;
         importScripts?:                 boolean;
         importCSS?:                     boolean;
+        scriptImportLocation?:          HTMLElement|HTMLHeadElement;
     }
 
     export interface IScrollPosition{
