@@ -1,6 +1,6 @@
 {
     "name": "@pageworks/pjax",
-    "version": "2.1.4",
+    "version": "2.2.0",
     "description": "Turns any website into a SPA using Fetch and link prefetching.",
     "keywords": [
         "pjax",
@@ -16,7 +16,7 @@
     "repository": "https://github.com/Pageworks/pjax.git",
     "author": "Pageworks",
     "license": "MIT",
-    "main": "pjax.js",
+    "main": "pjax.js", 
     "types": "./src/global.d.ts",
     "files": [
         "src",
@@ -31,19 +31,19 @@
         }
     },
     "dependencies": {
-        "@pageworks/device-manager": "latest",
+        "@pageworks/device-manager": "^1.2.3",
         "@pageworks/state-manager": "latest"
     },
     "devDependencies": {
         "http-server": "^0.11.1",
         "husky": "^0.14.3",
         "npm-run-all": "^4.1.5",
-        "tslint": "^5.14.0",
+        "tslint": "^5.19.0",
         "tslint-config-airbnb": "^5.11.1",
         "tslint-config-prettier": "^1.18.0",
-        "typescript": "^3.3.4000",
-        "webpack": "^4.29.6",
-        "webpack-cli": "^3.3.0"
+        "typescript": "^3.5.3",
+        "webpack": "^4.39.2",
+        "webpack-cli": "^3.3.7"
     },
     "scripts": {
         "precommit": "tslint -c .tslintrc.js -p tsconfig.json -t verbose",
