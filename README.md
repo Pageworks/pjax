@@ -1,32 +1,35 @@
 # Pjax
+
 Pjax enables fast and easy AJAX navigation on any website using `pushState` and `fetch`. No more full page reloads, no more multiple HTTP request, and written entirely in TypeScript.
 
 ## Installation
 
 Download Pjax via NPM:
 
-```
+```script
 npm i --save @pageworks/pjax
 ```
 
 Once the package is installed import the package:
 
-```
+```javascript
 import Pjax from '@pageworks/pjax';
 ```
 
 Then it's as simple as starting a new instance:
 
-```
+```javascript
 new Pjax();
 ```
 
 ## How Pjax Works
+
 Pjax loads pages using the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) and updates the browser's current URL using a `window.pushState()` all without reloading the page's layout or any resources (JavaScript, CSS, etc). Pjax listens for the `onmouseenter` event for links and prefetches the pages HTML. Dpending on what the user does determines Pjax's response. If the user clicks the link before the server responds Pjax will notice that the user wants the page and will switch out the content as soon as the server responds. Finally, if the user remains hovered and the server has already responded Pjax will cache the new pages HTML content and will wait until the user clicks the link or triggers the `onmouseleave` event causing Pjax to clear the cached HTML. When combining prefetching and the ability to swap out content without causing a full page reload results in very fast page load responses.
 
 Under the hood Pjax is **one HTTP request** with a `window.pushState()`.
 
 ### What Pjax's All About
+
 - Multiple container support
 - Fully supports browser history (window popstates)
 - Automagically falls back to standard navigation for external pages
@@ -35,6 +38,7 @@ Under the hood Pjax is **one HTTP request** with a `window.pushState()`.
 - Is very lightweight
 
 ### Under the Hood
+
 - Pjax attempts to prefetch internal links for the fastest possible load time
 - Pjax renders new pages without reloading resources such as images, CSS, JavaScript, etc...
 - Checks that all defined parts can be replaced:
@@ -47,7 +51,8 @@ Under the hood Pjax is **one HTTP request** with a `window.pushState()`.
 ### Getting Started
 
 Start by setting up the basic `index.html` file for your website.
-```
+
+```html
 <!doctype <!DOCTYPE html>
 <html>
 <head>
@@ -73,7 +78,8 @@ Start by setting up the basic `index.html` file for your website.
 ```
 
 In the main/application script for your project you can being using Pjax with the following:
-```
+
+```javascript
 import Pjax from '@pageworks/pjax';
 
 const pjax = new Pjax({
@@ -97,6 +103,7 @@ You can define custom Pjax options using the following:
 | customPreventionAttributes   | string[]                  | `[]`                 |
 | importScripts                | boolean                   | `true`               |
 | importCSS                    | boolean                   | `true`               |
+| scriptImportLocation         | HTMLElement               | `document.head`      |
 
 `elements` is the base element users should click on to trigger a page transition.
 
@@ -118,11 +125,13 @@ When `importScripts` is `true` Pjax will dynamically fetch and append all `<scri
 
 When `importCSS` is `true` Pjax will dynamically fetch and append custom `<style>` elements to the documents `<head>`. Only `<link>` elements labeled as `rel="stylesheet"` with a valid `href` attribute will be appended. Custom styles will only be appended once.
 
+`scriptImportLocation` is the `HTMLElement` that the dynamically fetched `<script>` elements will be appended upon. Defaults to `document.head`.
+
 ### Pjax Events
 
 Pjax fires a handful of events on the `document` that you can listen for.
 
-```
+```javascript
 document.addEventListener('pjax:error', ()=>{ console.log('Event: pjax:error'); });
 document.addEventListener('pjax:send', (e)=>{ console.log('Event: pjax:send', e); });
 document.addEventListener('pjax:prefetch', ()=>{ console.log('Event: pjax:prefetch'); });
@@ -131,18 +140,21 @@ document.addEventListener('pjax:complete', ()=>{ console.log('Event: pjax:comple
 document.addEventListener('pjax:scriptContentLoaded', ()=>{ console.log('Event: pjax:scriptContentLoaded'); });
 ```
 
-Pjax listens for a `pjax:continue` event on the `document`. This is only used when the `customTransitions` option is set to `true`. Pjax will **NOT** swap content until it recieves this event.
+Pjax listens for a `pjax:continue` event on the `document`. This is only used when the `customTransitions` option is set to `true`. Pjax will **NOT** swap content until it receives this event.
 
 The `pjax:scriptContentLoaded` will fire on the `document` when all the new scripts have been fetched and appended to the body.
 
 ### Status Classes
+
 Pjax sets two custom status classes on the `document` element that you can use in your CSS to style your page transitions. In the example below we set all elements to use the `wait` cursor while the `dom-is-loading` class is set. Once the `pjax:complete` or `pjax:error` events fire the `dom-is-loading` class is removed and the `dom-is-loaded` class is applied.
 
-```
-HTML.dom-is-loading *{
+```css
+HTML.dom-is-loading *
+{
     cursor: wait !important;
 }
 ```
 
 ### Static Methods
+
 Pjax allows developers to manually trigger a page load by using the public static method `Pjax.load(url)`

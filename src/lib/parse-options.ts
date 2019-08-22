@@ -15,5 +15,6 @@ export default (options:PJAX.IOptions = null)=>{
             parsedOptions.customPreventionAttributes    = (options !== null && options.customPreventionAttributes !== undefined) ? options.customPreventionAttributes : [];
             parsedOptions.importScripts                 = (options !== null && options.importScripts !== undefined) ? options.importScripts : true;
             parsedOptions.importCSS                     = (options !== null && options.importCSS !== undefined) ? options.importCSS : true;
+            parsedOptions.scriptImportLocation          = (options !== null && options.scriptImportLocation !== undefined && options.scriptImportLocation instanceof HTMLElement) ? options.scriptImportLocation : document.head;
     return  parsedOptions;
 }
