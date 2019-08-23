@@ -27,17 +27,12 @@ var Pjax = (function () {
             }
         };
         this.handleContinue = function (e) {
+            _this._transitionFinished = true;
             if (_this._cachedSwitch !== null) {
                 if (_this.options.titleSwitch) {
                     document.title = _this._cachedSwitch.title;
                 }
                 _this.handleSwitches(_this._cachedSwitch.queue);
-            }
-            else {
-                if (_this.options.debug) {
-                    console.log('%c[Pjax] ' + "%cswitch queue was empty. You might be sending pjax:continue early", 'color:#f3ff35', 'color:#eee');
-                }
-                trigger_1.default(document, ['pjax:error']);
             }
         };
         this._dom = document.documentElement;
@@ -57,13 +52,14 @@ var Pjax = (function () {
         this._isPushstate = true;
         this._scriptsToAppend = [];
         this._requestId = 0;
+        this._transitionFinished = false;
         this.init();
     }
     Pjax.prototype.init = function () {
         if (this.options.debug) {
             console.group();
             console.log('%c[Pjax] ' + ("%cinitializing Pjax version " + Pjax.VERSION), 'color:#f3ff35', 'color:#eee');
-            console.log('%c[Pjax] ' + "%cview Pjax documentation at http://papertrain.io/pjax", 'color:#f3ff35', 'color:#eee');
+            console.log('%c[Pjax] ' + "%cview Pjax documentation at https://github.com/Pageworks/pjax", 'color:#f3ff35', 'color:#eee');
             console.log('%c[Pjax] ' + "%cloaded with the following options: ", 'color:#f3ff35', 'color:#eee');
             console.log(this.options);
             console.groupEnd();
@@ -119,6 +115,7 @@ var Pjax = (function () {
         this._isPushstate = true;
         this._scrollTo = { x: 0, y: 0 };
         this._confirmed = false;
+        this._transitionFinished = false;
     };
     Pjax.prototype.handleSwitches = function (switchQueue) {
         for (var i = 0; i < switchQueue.length; i++) {
@@ -229,6 +226,12 @@ var Pjax = (function () {
                 queue: switchQueue,
                 title: tempDocument.title
             };
+            if (this._transitionFinished) {
+                if (this.options.titleSwitch) {
+                    document.title = this._cachedSwitch.title;
+                }
+                this.handleSwitches(this._cachedSwitch.queue);
+            }
         }
     };
     Pjax.prototype.lastChance = function (uri) {
@@ -530,7 +533,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.2.0';
+    Pjax.VERSION = '2.2.1';
     return Pjax;
 }());
 exports.default = Pjax;

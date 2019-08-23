@@ -1,10 +1,12 @@
 import Pjax from '../pjax';
 
+var useTransition = true;
+
 /**
  * IIFE for starting Pjax on load
  */
 (function(){
-    var pjax = new Pjax({ debug:true });
+    var pjax = new Pjax({ debug:true, customTransitions: useTransition });
 
     var prefetchLight = document.body.querySelector('.js-prefetch');
     var loadLight = document.body.querySelector('.js-load');
@@ -39,6 +41,12 @@ import Pjax from '../pjax';
 
     document.addEventListener('pjax:send', function(e){
         loadLight.classList.add('is-lit');
+
+        if (useTransition)
+        {
+            var continueEvent = new Event('pjax:continue');
+            document.dispatchEvent(continueEvent);
+        }
     });
 
     document.addEventListener('pjax:error', function(e){
