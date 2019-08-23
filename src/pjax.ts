@@ -14,19 +14,20 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.2.0';
+    public static VERSION:string    = '2.2.1';
 
-    public  options:            PJAX.IOptions;
-    private _cache:             PJAX.ICacheObject;
-    private _request:           string;
-    private _response:          Response;
-    private _confirmed:         boolean;
-    private _cachedSwitch:      PJAX.ICachedSwitchOptions;
-    private _scrollTo:          PJAX.IScrollPosition;
-    private _isPushstate:       boolean;
-    private _dom:               HTMLElement;
-    private _scriptsToAppend:   Array<HTMLScriptElement>;
-    private _requestId:         number;
+    public  options                 :   PJAX.IOptions;
+    private _cache                  :   PJAX.ICacheObject;
+    private _request                :   string;
+    private _response               :   Response;
+    private _confirmed              :   boolean;
+    private _cachedSwitch           :   PJAX.ICachedSwitchOptions;
+    private _scrollTo               :   PJAX.IScrollPosition;
+    private _isPushstate            :   boolean;
+    private _dom                    :   HTMLElement;
+    private _scriptsToAppend        :   Array<HTMLScriptElement>;
+    private _requestId              :   number;
+    private _transitionFinished     :   boolean;
 
     constructor(options?:PJAX.IOptions){
         this._dom           = document.documentElement;
@@ -49,6 +50,7 @@ export default class Pjax{
         this._isPushstate       = true;
         this._scriptsToAppend   = [];
         this._requestId         = 0;
+        this._transitionFinished    = false;
 
         this.init();
     }
@@ -56,10 +58,10 @@ export default class Pjax{
     init(){
         if(this.options.debug){
             console.group();
-            console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
-            console.log('%c[Pjax] '+`%cview Pjax documentation at http://papertrain.io/pjax`, 'color:#f3ff35','color:#eee');
-            console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
-            console.log(this.options);
+                console.log('%c[Pjax] '+`%cinitializing Pjax version ${ Pjax.VERSION }`, 'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%cview Pjax documentation at https://github.com/Pageworks/pjax`, 'color:#f3ff35','color:#eee');
+                console.log('%c[Pjax] '+`%cloaded with the following options: `, 'color:#f3ff35','color:#eee');
+                console.log(this.options);
             console.groupEnd();
         }
 
@@ -174,13 +176,14 @@ export default class Pjax{
         this._dom.classList.remove('dom-is-loading');
 
         // Reset status trackers
-        this._cache             = null;
-        this._request           = null;
-        this._response          = null;
-        this._cachedSwitch      = null;
-        this._isPushstate       = true;
-        this._scrollTo          = {x:0,y:0};
-        this._confirmed         = false;
+        this._cache                 = null;
+        this._request               = null;
+        this._response              = null;
+        this._cachedSwitch          = null;
+        this._isPushstate           = true;
+        this._scrollTo              = {x:0,y:0};
+        this._confirmed             = false;
+        this._transitionFinished    = false;
     }
 
     /**
@@ -208,22 +211,16 @@ export default class Pjax{
      * Only listening if the `customTransition` is enabled in the options object.
      */
     private handleContinue:EventListener = (e:Event)=>{
-        // Check if Pjax has cached the new page
-        if(this._cachedSwitch !== null){
-            
-            // Check if the titles need to be swapped
-            if(this.options.titleSwitch){
+        this._transitionFinished = true;
+        
+        if (this._cachedSwitch !== null)
+        {
+            if (this.options.titleSwitch)
+            {
                 document.title = this._cachedSwitch.title;
             }
             
-            // Swap content
             this.handleSwitches(this._cachedSwitch.queue);
-        }else{
-            // The developer fired the continue event too early so the page hasn't finished loading
-            if(this.options.debug){
-                console.log('%c[Pjax] '+`%cswitch queue was empty. You might be sending pjax:continue early`,'color:#f3ff35','color:#eee');
-            }
-            trigger(document, ['pjax:error']);
         }
     }
 
@@ -390,6 +387,15 @@ export default class Pjax{
                 queue: switchQueue,
                 title: tempDocument.title
             };
+
+            if (this._transitionFinished)
+            {
+                if (this.options.titleSwitch)
+                {
+                    document.title = this._cachedSwitch.title;
+                }
+                this.handleSwitches(this._cachedSwitch.queue);
+            }
         }
     }
 
@@ -424,7 +430,8 @@ export default class Pjax{
     private loadCachedContent(): void{
         
         // Verify that the server responded with a 200 level response status
-        if(!this.statusCheck()){
+        if (!this.statusCheck())
+        {
             this.lastChance(this._cache.url);
             return;
         }
@@ -689,16 +696,19 @@ export default class Pjax{
     private handleResponse(response:Response): void{
         
         // If the request is null (aborted) do nothing
-        if(this._request === null){
-            return;    
+        if (this._request === null)
+        {
+            return;
         }
         
-        if(this.options.debug){
+        if (this.options.debug)
+        {
             console.log('%c[Pjax] '+`%cRequest status: ${ response.status }`,'color:#f3ff35','color:#eee');
         }
         
         // Check if the server response is valid
-        if(!response.ok){
+        if (!response.ok)
+        {
             trigger(document, ['pjax:error']);
             return;
         }
@@ -709,9 +719,12 @@ export default class Pjax{
             // Handle the response based on the load type provided
             switch(this._request){
                 case 'prefetch':
-                    if(this._confirmed){
+                    if (this._confirmed)
+                    {
                         this.loadContent(responseText);
-                    }else{
+                    }
+                    else
+                    {
                         this.cacheContent(responseText, this._response.status, this._response.url);
                     }
                     break;
@@ -733,7 +746,7 @@ export default class Pjax{
     /**
      * Request the new page using the `fetch` api.
      * @see https://fetch.spec.whatwg.org/
-     * @param href - URI of the reqeusted page
+     * @param href - URI of the requested page
      */
     private doRequest(href:string):void{
         
@@ -761,7 +774,7 @@ export default class Pjax{
             method: fetchMethod,
             headers: fetchHeaders
         }).then((response:Response)=>{
-            // Only handle the request if it's still the most reacent request
+            // Only handle the request if it's still the most recent request
             if(idAtStartOfRequest === this._requestId){
                 this.handleResponse(response);
             }

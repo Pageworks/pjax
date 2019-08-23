@@ -1,3 +1,9 @@
+## 2.2.1 - 2019-08-23
+
+### Fixed
+
+- Fixes: page transitions break on slow connections [#16](https://github.com/Pageworks/pjax/issues/16)
+
 ## 2.2.0 - 2019-08-22
 
 ### Added
