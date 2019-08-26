@@ -6,7 +6,7 @@ var useTransition = true;
  * IIFE for starting Pjax on load
  */
 (function(){
-    var pjax = new Pjax({ debug:true, customTransitions: useTransition });
+    var pjax = new Pjax({ debug:true });
 
     var prefetchLight = document.body.querySelector('.js-prefetch');
     var loadLight = document.body.querySelector('.js-load');

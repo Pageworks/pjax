@@ -16,5 +16,6 @@ export default (options:PJAX.IOptions = null)=>{
             parsedOptions.importScripts                 = (options !== null && options.importScripts !== undefined) ? options.importScripts : true;
             parsedOptions.importCSS                     = (options !== null && options.importCSS !== undefined) ? options.importCSS : true;
             parsedOptions.scriptImportLocation          = (options !== null && options.scriptImportLocation !== undefined && options.scriptImportLocation instanceof HTMLElement) ? options.scriptImportLocation : document.head;
+            parsedOptions.requireCssBeforeComplete      = (options !== null && options.requireCssBeforeComplete !== undefined) ? options.requireCssBeforeComplete : false;
     return  parsedOptions;
 }

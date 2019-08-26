@@ -20,6 +20,7 @@ declare namespace Pjax{
         importScripts?:                 boolean;
         importCSS?:                     boolean;
         scriptImportLocation?:          HTMLElement|HTMLHeadElement;
+        requireCssBeforeComplete?:      boolean;
     }
 
     export interface IScrollPosition{
