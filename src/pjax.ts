@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.2.1';
+    public static VERSION:string    = '2.3.0';
 
     public  options                 :   PJAX.IOptions;
     private _cache                  :   PJAX.ICacheObject;
@@ -373,11 +373,47 @@ export default class Pjax{
         }
 
         if(this.options.importCSS){
-            this.handleCSS(tempDocument);
+            if (!this.options.requireCssBeforeComplete)
+            {
+                this.handleCSS(tempDocument);
+            }
+            else
+            {
+                this.handleSynchronousCss(tempDocument)
+                .then(()=>{
+                    // Check if Pjax needs to wait for the continue event
+                    if(!this.options.customTransitions){
+                        if(this.options.titleSwitch){
+                            document.title = tempDocument.title;
+                        }
+                        this.handleSwitches(switchQueue);
+                    }else{
+                        this._cachedSwitch = {
+                            queue: switchQueue,
+                            title: tempDocument.title
+                        };
+
+                        if (this._transitionFinished)
+                        {
+                            if (this.options.titleSwitch)
+                            {
+                                document.title = this._cachedSwitch.title;
+                            }
+                            this.handleSwitches(this._cachedSwitch.queue);
+                        }
+                    }
+                });
+            }
         }
         
+        if (this.options.importCSS && this.options.requireCssBeforeComplete)
+        {
+            return;
+        }
+
         // Check if Pjax needs to wait for the continue event
-        if(!this.options.customTransitions){
+        if (!this.options.customTransitions)
+        {
             if(this.options.titleSwitch){
                 document.title = tempDocument.title;
             }
@@ -636,9 +672,10 @@ export default class Pjax{
      * Append any `<style>` or `<link rel="stylesheet">` elements onto the current documents head
      * @param newDocument - `HTMLDocument`
      */
-    private handleCSS(newDocument:HTMLDocument):void{
-        
-        if(newDocument instanceof HTMLDocument){
+    private handleCSS(newDocument:HTMLDocument) : void
+    {  
+        if (newDocument instanceof HTMLDocument)
+        {
             const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
             const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
             const stylesToAppend:Array<HTMLLinkElement> = [];
@@ -654,7 +691,8 @@ export default class Pjax{
                     }
                 });
 
-                if(appendStyle){
+                if (appendStyle)
+                {
                     stylesToAppend.push(newStyle);
                 }
             });
@@ -684,6 +722,74 @@ export default class Pjax{
                 });
             }
         }
+    }
+
+    private handleSynchronousCss(newDocument:HTMLDocument) : Promise<any>
+    {
+        return new Promise((resolve)=>{
+            if (newDocument instanceof HTMLDocument)
+            {
+                const newStyles:Array<HTMLLinkElement> = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+                const currentStyles:Array<HTMLElement> = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+                const stylesToAppend:Array<HTMLLinkElement> = [];
+                let fetched = 0;
+
+                newStyles.forEach((newStyle)=>{
+                    let appendStyle = true;
+                    const newStyleFile = newStyle.getAttribute('href').match(/[^/]+$/g)[0];
+
+                    currentStyles.forEach((currentStyle)=>{
+                        const currentStyleFile = currentStyle.getAttribute('href').match(/[^/]+$/g)[0];
+                        if (newStyleFile === currentStyleFile)
+                        {
+                            appendStyle = false;
+                        }
+                    });
+
+                    if (appendStyle)
+                    {
+                        stylesToAppend.push(newStyle);
+                    }
+                });
+
+                // Append the new `link` styles to the head
+                if (stylesToAppend.length)
+                {
+                    stylesToAppend.forEach((style)=>{
+                        fetch(style.href, {
+                            method: 'GET',
+                            credentials: 'include',
+                            headers: new Headers({
+                                'X-Requested-With': 'XMLHttpRequest'
+                            })
+                        })
+                        .then(request => request.text())
+                        .then(response => {
+                            const newStyle = document.createElement('style');
+                            newStyle.setAttribute('rel', 'stylesheet');
+                            newStyle.setAttribute('href', style.href);
+                            newStyle.innerHTML = response;
+                            document.head.appendChild(newStyle);
+                        })
+                        .catch(error => {
+                            console.error('Failed to fetch stylesheet', style.href, error);
+                        })
+                        .then(()=>{
+                            fetched++;
+
+                            if (fetched === stylesToAppend.length)
+                            {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                else
+                {
+                    resolve();
+                }
+            }
+        });
     }
 
     /**

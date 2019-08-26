@@ -104,6 +104,7 @@ You can define custom Pjax options using the following:
 | importScripts                | boolean                   | `true`               |
 | importCSS                    | boolean                   | `true`               |
 | scriptImportLocation         | HTMLElement               | `document.head`      |
+| requireCssBeforeComplete     | boolean                   | `false`              |
 
 `elements` is the base element users should click on to trigger a page transition.
 
@@ -126,6 +127,8 @@ When `importScripts` is `true` Pjax will dynamically fetch and append all `<scri
 When `importCSS` is `true` Pjax will dynamically fetch and append custom `<style>` elements to the documents `<head>`. Only `<link>` elements labeled as `rel="stylesheet"` with a valid `href` attribute will be appended. Custom styles will only be appended once.
 
 `scriptImportLocation` is the `HTMLElement` that the dynamically fetched `<script>` elements will be appended upon. Defaults to `document.head`.
+
+When `requireCssBeforeComplete` is `true` Pjax will delay firing the `pjax:complete` event until all the CSS fetch request have been resolved.
 
 ### Pjax Events
 

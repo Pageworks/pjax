@@ -1,3 +1,9 @@
+## 2.3.0 - 2019-08-26
+
+### Added
+
+- Adds: developers can enable the `requireCssBeforeComplete` flag to force Pjax to fetch and append all the CSS stylesheets before firing the `pjax:complete` event
+
 ## 2.2.1 - 2019-08-23
 
 ### Fixed
