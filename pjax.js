@@ -213,7 +213,35 @@ var Pjax = (function () {
             this.handleScripts(tempDocument);
         }
         if (this.options.importCSS) {
-            this.handleCSS(tempDocument);
+            if (!this.options.requireCssBeforeComplete) {
+                this.handleCSS(tempDocument);
+            }
+            else {
+                this.handleSynchronousCss(tempDocument)
+                    .then(function () {
+                    if (!_this.options.customTransitions) {
+                        if (_this.options.titleSwitch) {
+                            document.title = tempDocument.title;
+                        }
+                        _this.handleSwitches(switchQueue);
+                    }
+                    else {
+                        _this._cachedSwitch = {
+                            queue: switchQueue,
+                            title: tempDocument.title
+                        };
+                        if (_this._transitionFinished) {
+                            if (_this.options.titleSwitch) {
+                                document.title = _this._cachedSwitch.title;
+                            }
+                            _this.handleSwitches(_this._cachedSwitch.queue);
+                        }
+                    }
+                });
+            }
+        }
+        if (this.options.importCSS && this.options.requireCssBeforeComplete) {
+            return;
         }
         if (!this.options.customTransitions) {
             if (this.options.titleSwitch) {
@@ -416,6 +444,60 @@ var Pjax = (function () {
             }
         }
     };
+    Pjax.prototype.handleSynchronousCss = function (newDocument) {
+        return new Promise(function (resolve) {
+            if (newDocument instanceof HTMLDocument) {
+                var newStyles = Array.from(newDocument.querySelectorAll('link[rel="stylesheet"]'));
+                var currentStyles_2 = Array.from(document.querySelectorAll('link[rel="stylesheet"], style[href]'));
+                var stylesToAppend_2 = [];
+                var fetched_1 = 0;
+                newStyles.forEach(function (newStyle) {
+                    var appendStyle = true;
+                    var newStyleFile = newStyle.getAttribute('href').match(/[^/]+$/g)[0];
+                    currentStyles_2.forEach(function (currentStyle) {
+                        var currentStyleFile = currentStyle.getAttribute('href').match(/[^/]+$/g)[0];
+                        if (newStyleFile === currentStyleFile) {
+                            appendStyle = false;
+                        }
+                    });
+                    if (appendStyle) {
+                        stylesToAppend_2.push(newStyle);
+                    }
+                });
+                if (stylesToAppend_2.length) {
+                    stylesToAppend_2.forEach(function (style) {
+                        fetch(style.href, {
+                            method: 'GET',
+                            credentials: 'include',
+                            headers: new Headers({
+                                'X-Requested-With': 'XMLHttpRequest'
+                            })
+                        })
+                            .then(function (request) { return request.text(); })
+                            .then(function (response) {
+                            var newStyle = document.createElement('style');
+                            newStyle.setAttribute('rel', 'stylesheet');
+                            newStyle.setAttribute('href', style.href);
+                            newStyle.innerHTML = response;
+                            document.head.appendChild(newStyle);
+                        })
+                            .catch(function (error) {
+                            console.error('Failed to fetch stylesheet', style.href, error);
+                        })
+                            .then(function () {
+                            fetched_1++;
+                            if (fetched_1 === stylesToAppend_2.length) {
+                                resolve();
+                            }
+                        });
+                    });
+                }
+                else {
+                    resolve();
+                }
+            }
+        });
+    };
     Pjax.prototype.handleResponse = function (response) {
         var _this = this;
         if (this._request === null) {
@@ -533,7 +615,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.2.1';
+    Pjax.VERSION = '2.3.0';
     return Pjax;
 }());
 exports.default = Pjax;
