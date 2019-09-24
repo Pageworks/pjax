@@ -288,6 +288,9 @@ var Pjax = (function () {
     Pjax.prototype.parseContent = function (responseText) {
         var tempDocument = document.implementation.createHTMLDocument('pjax-temp-document');
         var contentType = this._response.headers.get('Content-Type');
+        if (contentType !== null) {
+            return null;
+        }
         var htmlRegex = /text\/html/gi;
         var matches = contentType.match(htmlRegex);
         if (matches !== null) {
@@ -615,7 +618,7 @@ var Pjax = (function () {
         });
         document.dispatchEvent(customEvent);
     };
-    Pjax.VERSION = '2.3.0';
+    Pjax.VERSION = '2.3.1';
     return Pjax;
 }());
 exports.default = Pjax;
