@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.3.0';
+    public static VERSION:string    = '2.3.1';
 
     public  options                 :   PJAX.IOptions;
     private _cache                  :   PJAX.ICacheObject;
@@ -490,6 +490,12 @@ export default class Pjax{
         const tempDocument:HTMLDocument = document.implementation.createHTMLDocument('pjax-temp-document');
 
         const contentType = this._response.headers.get('Content-Type');
+
+        if (contentType !== null)
+        {
+            return null;
+        }
+
         const htmlRegex = /text\/html/gi;
         const matches = contentType.match(htmlRegex);
         
