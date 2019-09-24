@@ -1,3 +1,9 @@
+## 2.3.1 - 2019-09-24
+
+### Fixed
+
+- Fixes: fails the document parse when the response doesn't have a `Content-Type` header
+
 ## 2.3.0 - 2019-08-26
 
 ### Added
