@@ -14,7 +14,7 @@ import PJAX from './global';
 
 export default class Pjax{
 
-    public static VERSION:string    = '2.3.1';
+    public static VERSION:string    = '2.3.2';
 
     public  options                 :   PJAX.IOptions;
     private _cache                  :   PJAX.ICacheObject;
@@ -491,7 +491,7 @@ export default class Pjax{
 
         const contentType = this._response.headers.get('Content-Type');
 
-        if (contentType !== null)
+        if (contentType === null)
         {
             return null;
         }

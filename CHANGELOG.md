@@ -1,3 +1,9 @@
+## 2.3.2 - 2019-09-26
+
+### Fixed
+
+- Fixes: fixed incorrect `null` check when verifying the existence of the `Content-Type` header
+
 ## 2.3.1 - 2019-09-24
 
 ### Fixed
